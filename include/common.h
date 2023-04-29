@@ -81,7 +81,7 @@ struct pcb_t
   uint32_t pc;             // Program pointer, point to the next instruction
 #ifdef MLQ_SCHED
   // Priority on execution (if supported), on-fly aka. changeable
-  // and this vale overwrites the default priority when it existed
+  // and this value overwrites the default priority when it existed
   uint32_t prio;
 #endif
 #ifdef MM_PAGING
