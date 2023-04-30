@@ -75,7 +75,6 @@ get_mlq_proc (void)
   /* Get a process from PRIORITY [mlq_ready_queue].
    * Remember to use lock to protect the queue.
    * */
-  pthread_mutex_lock (&queue_lock);
 
   /* Check if the ENTIRE MULTI-QUEUE is empty */
   if (queue_empty ())
@@ -93,7 +92,6 @@ get_mlq_proc (void)
         }
     }
   proc = dequeue (&mlq_ready_queue[curr_prio]);
-  pthread_mutex_unlock (&queue_lock);
   return proc;
 }
 
@@ -131,6 +129,14 @@ add_proc (struct pcb_t *proc)
   return add_mlq_proc (proc);
 }
 
+void
+decrease_q_time_left ()
+{
+  pthread_mutex_lock (&queue_lock);
+  mlq_ready_queue[curr_prio].time_left--;
+  pthread_mutex_unlock (&queue_lock);
+}
+
 #else
 
 /* Deprecated */
@@ -158,13 +164,6 @@ add_proc (struct pcb_t *proc)
 }
 
 #ifdef MLQ_SCHED
-void
-decrease_q_time_left ()
-{
-  pthread_mutex_lock (&queue_lock);
-  mlq_ready_queue[curr_slot].time_left--;
-  pthread_mutex_unlock (&queue_lock);
-}
 #endif
 
 #endif
