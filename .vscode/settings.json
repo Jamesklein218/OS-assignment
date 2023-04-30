@@ -1,6 +1,8 @@
 {
   "editor.tabSize": 2,
   "files.associations": {
-    "cpu.h": "c"
+    "cpu.h": "c",
+    "queue.h": "c",
+    "sched.h": "c"
   }
 }

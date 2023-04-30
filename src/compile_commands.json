@@ -1,0 +1,142 @@
+[
+ {
+  "directory": "/Users/khoa/Documents/Project/learn/OS/assignment",
+  "arguments": [
+   "gcc",
+   "-Iinclude",
+   "-Wall",
+   "-c",
+   "-g",
+   "src/cpu.c",
+   "-o",
+   "obj/cpu.o"
+  ],
+  "file": "src/cpu.c"
+ },
+ {
+  "directory": "/Users/khoa/Documents/Project/learn/OS/assignment",
+  "arguments": [
+   "gcc",
+   "-Iinclude",
+   "-Wall",
+   "-c",
+   "-g",
+   "src/mem.c",
+   "-o",
+   "obj/mem.o"
+  ],
+  "file": "src/mem.c"
+ },
+ {
+  "directory": "/Users/khoa/Documents/Project/learn/OS/assignment",
+  "arguments": [
+   "gcc",
+   "-Iinclude",
+   "-Wall",
+   "-c",
+   "-g",
+   "src/loader.c",
+   "-o",
+   "obj/loader.o"
+  ],
+  "file": "src/loader.c"
+ },
+ {
+  "directory": "/Users/khoa/Documents/Project/learn/OS/assignment",
+  "arguments": [
+   "gcc",
+   "-Iinclude",
+   "-Wall",
+   "-c",
+   "-g",
+   "src/queue.c",
+   "-o",
+   "obj/queue.o"
+  ],
+  "file": "src/queue.c"
+ },
+ {
+  "directory": "/Users/khoa/Documents/Project/learn/OS/assignment",
+  "arguments": [
+   "gcc",
+   "-Iinclude",
+   "-Wall",
+   "-c",
+   "-g",
+   "src/os.c",
+   "-o",
+   "obj/os.o"
+  ],
+  "file": "src/os.c"
+ },
+ {
+  "directory": "/Users/khoa/Documents/Project/learn/OS/assignment",
+  "arguments": [
+   "gcc",
+   "-Iinclude",
+   "-Wall",
+   "-c",
+   "-g",
+   "src/sched.c",
+   "-o",
+   "obj/sched.o"
+  ],
+  "file": "src/sched.c"
+ },
+ {
+  "directory": "/Users/khoa/Documents/Project/learn/OS/assignment",
+  "arguments": [
+   "gcc",
+   "-Iinclude",
+   "-Wall",
+   "-c",
+   "-g",
+   "src/timer.c",
+   "-o",
+   "obj/timer.o"
+  ],
+  "file": "src/timer.c"
+ },
+ {
+  "directory": "/Users/khoa/Documents/Project/learn/OS/assignment",
+  "arguments": [
+   "gcc",
+   "-Iinclude",
+   "-Wall",
+   "-c",
+   "-g",
+   "src/mm-vm.c",
+   "-o",
+   "obj/mm-vm.o"
+  ],
+  "file": "src/mm-vm.c"
+ },
+ {
+  "directory": "/Users/khoa/Documents/Project/learn/OS/assignment",
+  "arguments": [
+   "gcc",
+   "-Iinclude",
+   "-Wall",
+   "-c",
+   "-g",
+   "src/mm.c",
+   "-o",
+   "obj/mm.o"
+  ],
+  "file": "src/mm.c"
+ },
+ {
+  "directory": "/Users/khoa/Documents/Project/learn/OS/assignment",
+  "arguments": [
+   "gcc",
+   "-Iinclude",
+   "-Wall",
+   "-c",
+   "-g",
+   "src/mm-memphy.c",
+   "-o",
+   "obj/mm-memphy.o"
+  ],
+  "file": "src/mm-memphy.c"
+ }
+]

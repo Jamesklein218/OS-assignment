@@ -1,8 +1,6 @@
 #ifndef OSMM_H
 #define OSMM_H
 
-#include <stdint.h> // For uint32_t
-
 #define MM_PAGING
 #define PAGING_MAX_MMSWP 4 /* max number of supported swapped space */
 #define PAGING_MAX_SYMTBL_SZ 30
@@ -11,7 +9,7 @@ typedef char BYTE;
 typedef uint32_t addr_t;
 //typedef unsigned int uint32_t;
 
-struct pgn_t {
+struct pgn_t{
    int pgn;
    struct pgn_t *pg_next; 
 };
@@ -85,4 +83,3 @@ struct memphy_struct {
 };
 
 #endif
-

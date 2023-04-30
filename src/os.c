@@ -74,13 +74,14 @@ cpu_routine (void *args)
           proc = get_proc ();
           time_left = 0;
         }
-      else if (time_left == 0)
+      else if (time_left == 0 || queue_time_up ())
         {
           /* The process has done its job in current time slot */
-
           printf ("\tCPU %d: Put process %2d to run queue\n", id, proc->pid);
           put_proc (proc);
           proc = get_proc ();
+          time_left = 0; /* Reset time_left when the process cannot be further
+                            processed due to the queue's time up */
         }
 
       /* Recheck process status after loading new process */
@@ -99,6 +100,8 @@ cpu_routine (void *args)
         }
       else if (time_left == 0)
         {
+          /* Dispatch new process when the previous one has been put into
+           * the queue or the process is the first one*/
           printf ("\tCPU %d: Dispatched process %2d\n", id, proc->pid);
           time_left = time_slot;
         }
@@ -106,6 +109,9 @@ cpu_routine (void *args)
       /* Run current process */
       run (proc);
       time_left--;
+#ifdef MLQ_SCHED
+      decrease_q_time_left (); /* Decrease time left of each queue */
+#endif
       next_slot (timer_id);
     }
   detach_event (timer_id);
