@@ -40,7 +40,7 @@ resize (struct queue_t *q, int new_size)
 int
 empty (struct queue_t *q)
 {
-  if (q == NULL || q->size == 0)
+  if (q == NULL)
     return 1;
   return (q->size == 0);
 }

@@ -13,7 +13,7 @@ static pthread_mutex_t queue_lock;
 
 #ifdef MLQ_SCHED
 static struct queue_t mlq_ready_queue[MAX_PRIO];
-static unsigned int curr_prio;
+static uint32_t curr_prio;
 #endif
 
 int
@@ -79,18 +79,33 @@ get_mlq_proc (void)
   /* Check if the ENTIRE MULTI-QUEUE is empty */
   if (queue_empty ())
     return proc;
-  while (empty (&mlq_ready_queue[curr_prio]) || queue_time_up ())
-    {
-      /* Reset time_left before advancing to the next queue */
-      mlq_ready_queue[curr_prio].time_left = MAX_PRIO - curr_prio;
-      curr_prio++;
 
-      /* Reseting curr_prio when curr_prio reach the end */
-      if (curr_prio >= MAX_PRIO)
-        {
-          curr_prio = 0;
-        }
+  /* Finding the highest priority queue available */
+  uint32_t prio;
+  for (prio = 0; prio < MAX_PRIO; prio++)
+    {
+      if (!empty (&mlq_ready_queue[prio])
+          && (prio != curr_prio || !queue_time_up ()))
+        break;
     }
+
+  printf ("\tGet Proc: curr_prio=%d prio%d\n", curr_prio, prio);
+
+  /* Resetting the max slots of the current queue if
+   * there is a queue change OR if it is the only queue
+   * in the mlq
+   * */
+  if (prio != curr_prio || prio == MAX_PRIO)
+    mlq_ready_queue[curr_prio].time_left = MAX_PRIO - curr_prio;
+
+  /* Resetting current queue to the 'prio'-th queue */
+  if (prio != MAX_PRIO)
+    curr_prio = prio;
+  /* else, prio == MAX_PRIO, it means that
+   * mlq_ready_queue[curr_prio]
+   * is the only queue in town
+   * */
+
   proc = dequeue (&mlq_ready_queue[curr_prio]);
   return proc;
 }

@@ -4,6 +4,7 @@
 #include "mem.h"
 #include <stdio.h>
 
+/* Deprecated */
 int
 main ()
 {
