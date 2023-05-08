@@ -137,7 +137,8 @@ __free (struct pcb_t *caller, int vmaid, int rgid)
   if (rgid < 0 || rgid > PAGING_MAX_SYMTBL_SZ)
     return -1;
 
-  /* TODO: Manage the collect freed region to freerg_list */
+  /* Manage the collect freed region to freerg_list */
+  rgnode = caller->mm->symrgtbl[rgid];
 
   /*enlist the obsoleted memory region */
   enlist_vm_freerg_list (caller->mm, rgnode);
