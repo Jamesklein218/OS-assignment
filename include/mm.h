@@ -107,8 +107,8 @@ int enlist_pgn_node (struct pgn_t **pgnlist, int pgn);
 int vmap_page_range (struct pcb_t *caller, int addr, int pgnum,
                      struct framephy_struct *frames,
                      struct vm_rg_struct *ret_rg);
-int vm_map_ram (struct pcb_t *caller, int astart, int send, int mapstart,
-                int incpgnum, struct vm_rg_struct *ret_rg);
+int vm_map_ram (struct pcb_t *caller, int mapstart, int incpgnum,
+                struct vm_rg_struct *ret_rg);
 int alloc_pages_range (struct pcb_t *caller, int incpgnum,
                        struct framephy_struct **frm_lst);
 int __swap_cp_page (struct memphy_struct *mpsrc, int srcfpn,
@@ -123,7 +123,7 @@ int init_pte (uint32_t *pte,
               int swptyp,  // swap type
               int swpoff); // swap offset
 int __alloc (struct pcb_t *caller, int vmaid, int rgid, int size,
-             int *alloc_addr);
+             uint32_t *alloc_addr);
 int __free (struct pcb_t *caller, int vmaid, int rgid);
 int __read (struct pcb_t *caller, int vmaid, int rgid, int offset, BYTE *data);
 int __write (struct pcb_t *caller, int vmaid, int rgid, int offset,
@@ -147,7 +147,8 @@ int validate_overlap_vm_area (struct pcb_t *caller, int vmaid, int vmastart,
                               int vmaend);
 int get_free_vmrg_area (struct pcb_t *caller, int vmaid, int size,
                         struct vm_rg_struct *newrg);
-int inc_vma_limit (struct pcb_t *caller, int vmaid, int inc_sz);
+int inc_vma_limit (struct pcb_t *caller, int vmaid, int inc_sz,
+                   struct vm_rg_struct *newrg);
 int find_victim_page (struct mm_struct *mm, int *pgn);
 struct vm_area_struct *get_vma_by_num (struct mm_struct *mm, int vmaid);
 

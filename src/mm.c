@@ -97,31 +97,33 @@ vmap_page_range (
 {                                   // no guarantee all given pages are mapped
   uint32_t *pte;
   struct framephy_struct *fpit = frames;
-  int pgit = 0;
+  int pgit;
   int pgn = PAGING_PGN (addr);
 
-  ret_rg->rg_end = ret_rg->rg_start
-      = addr; // at least the very first space is usable
+  /* Set the first region to the first address */
+  ret_rg->rg_end = ret_rg->rg_start = addr;
 
-  /* TODO map range of frame to address space
+  /* Map range of frame to address space
    *      [addr  addr + pgnum*PAGING_PAGESZ
    *      in page table caller->mm->pgd[]
    */
 
-  for (pgit = pgn; pgit < pgnum; pgit++)
+  for (pgit = 0; pgit < pgnum; pgit++)
     {
       /* Page table out of bound */
       if (pgn + pgit >= PAGING_MAX_PGN)
         return -2;
 
-      pte = caller->mm->pgd + pgn
-            + pgit; /* Get the address of caller->mm->pgd[pgn + pgit] */
+      /* Get the address of caller->mm->pgd[pgn + pgit] */
+      pte = caller->mm->pgd + pgn + pgit;
 
-      /* TODO: Init Page table entry for each frame */
-      init_pte (pte, /* present: */ 0, /* fpn: */ fpit->fpn, /* drt: */ 0,
+      /* Page table entry for each frame,
+       * initially every frame is presented */
+      init_pte (pte, /* present: */ 1, /* fpn: */ fpit->fpn, /* drt: */ 0,
                 /* swp: */ 0, /* swptyp */ 0, /*  swpoff */ 0);
 
-      fpit = fpit->fp_next;
+      fpit = fpit->fp_next;            /* proceed to the next physical frame */
+      ret_rg->rg_end += PAGING_PAGESZ; /* Add page end to one page size */
     }
 
   /* Tracking for later page replacement activities (if needed)
@@ -186,15 +188,13 @@ alloc_pages_range (struct pcb_t *caller, int req_pgnum,
 /*
  * vm_map_ram - do the mapping all vm are to ram storage device
  * @caller    : caller
- * @astart    : vm area start
- * @aend      : vm area end
  * @mapstart  : start mapping point
  * @incpgnum  : number of mapped page
  * @ret_rg    : returned region
  */
 int
-vm_map_ram (struct pcb_t *caller, int astart, int aend, int mapstart,
-            int incpgnum, struct vm_rg_struct *ret_rg)
+vm_map_ram (struct pcb_t *caller, int mapstart, int incpgnum,
+            struct vm_rg_struct *ret_rg)
 {
   struct framephy_struct *frm_lst = NULL;
   int ret_alloc;

@@ -89,8 +89,6 @@ get_mlq_proc (void)
         break;
     }
 
-  printf ("\tGet Proc: curr_prio=%d prio%d\n", curr_prio, prio);
-
   /* Resetting the max slots of the current queue if
    * there is a queue change OR if it is the only queue
    * in the mlq

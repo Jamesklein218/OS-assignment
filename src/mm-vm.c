@@ -77,10 +77,10 @@ get_symrg_byid (struct mm_struct *mm, int rgid)
  *@rgid: memory region ID (used to identify variable in symbole table)
  *@size: allocated size
  *@alloc_addr: address of allocated memory region
- *
  */
 int
-__alloc (struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr)
+__alloc (struct pcb_t *caller, int vmaid, int rgid, int size,
+         uint32_t *alloc_addr)
 {
   /*Allocate at the toproof */
   struct vm_rg_struct rgnode;
@@ -95,29 +95,32 @@ __alloc (struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr)
 
       *alloc_addr = rgnode.rg_start;
 
+      printf ("\tAllocating memory %d units, page size %d\n",
+              caller->mm->symrgtbl[rgid].rg_end - *alloc_addr, PAGING_PAGESZ);
+
       return 0;
     }
 
-  /* get_free_vmrg_area FAILED handle the region management (Fig.6)*/
+  /* TODO: get_free_vmrg_area FAILED handle the region management (Fig.6)*/
 
   /*Attempt to increate limit to get space */
-  struct vm_area_struct *cur_vma = get_vma_by_num (caller->mm, vmaid);
   int inc_sz = PAGING_PAGE_ALIGNSZ (size);
   // int inc_limit_ret
-  int old_sbrk;
 
-  old_sbrk = cur_vma->sbrk;
-
-  /* TODO INCREASE THE LIMIT
+  /* INCREASE THE LIMIT
+   * Ascender the sbrk cursor
    * inc_vma_limit(caller, vmaid, inc_sz)
    */
-  inc_vma_limit (caller, vmaid, inc_sz);
+  int stat
+      = inc_vma_limit (caller, vmaid, inc_sz, &caller->mm->symrgtbl[rgid]);
 
-  /*Successful increase limit */
-  caller->mm->symrgtbl[rgid].rg_start = old_sbrk;
-  caller->mm->symrgtbl[rgid].rg_end = old_sbrk + size;
+  if (stat == -1)
+    return -1;
 
-  *alloc_addr = old_sbrk;
+  *alloc_addr = caller->mm->symrgtbl[rgid].rg_start;
+
+  printf ("\tAllocating memory %d units, page size %d\n",
+          caller->mm->symrgtbl[rgid].rg_end - *alloc_addr, PAGING_PAGESZ);
 
   return 0;
 }
@@ -143,6 +146,9 @@ __free (struct pcb_t *caller, int vmaid, int rgid)
   /*enlist the obsoleted memory region */
   enlist_vm_freerg_list (caller->mm, rgnode);
 
+  printf ("\tFreeing memory %d units %d\n",
+          caller->mm->symrgtbl[rgid].rg_end
+              - caller->mm->symrgtbl[rgid].rg_start);
   return 0;
 }
 
@@ -154,7 +160,7 @@ __free (struct pcb_t *caller, int vmaid, int rgid)
 int
 pgalloc (struct pcb_t *proc, uint32_t size, uint32_t reg_index)
 {
-  int addr;
+  uint32_t addr;
 
   /* By default using vmaid = 0 */
   return __alloc (proc, 0, reg_index, size, &addr);
@@ -427,33 +433,31 @@ validate_overlap_vm_area (struct pcb_t *caller, int vmaid, int vmastart,
  *@caller: caller
  *@vmaid: ID vm area to alloc memory region
  *@inc_sz: increment size
- *
+ *@newrg: return new region
  */
 int
-inc_vma_limit (struct pcb_t *caller, int vmaid, int inc_sz)
+inc_vma_limit (struct pcb_t *caller, int vmaid, int inc_sz,
+               struct vm_rg_struct *newrg)
 {
-  struct vm_rg_struct *newrg = malloc (sizeof (struct vm_rg_struct));
   int inc_amt = PAGING_PAGE_ALIGNSZ (
       inc_sz); /* increment amount: align to match pages size */
   int incnumpage = inc_amt / PAGING_PAGESZ;
-  struct vm_rg_struct *area
-      = get_vm_area_node_at_brk (caller, vmaid, inc_sz, inc_amt);
   struct vm_area_struct *cur_vma = get_vma_by_num (caller->mm, vmaid);
 
   int old_end = cur_vma->vm_end;
 
-  /*Validate overlap of obtained region */
-  if (validate_overlap_vm_area (caller, vmaid, area->rg_start, area->rg_end)
-      < 0)
-    return -1; /*Overlap and failed allocation */
+  /*Validate overlap of obtained region: disabled */
+  // if (validate_overlap_vm_area (caller, vmaid, area->rg_start, area->rg_end)
+  //     < 0)
+  // return -1; /*Overlap and failed allocation */
 
   /* The obtained vm area (only)
    * now will be alloc real ram region */
   cur_vma->vm_end += inc_sz;
-  if (vm_map_ram (caller, area->rg_start, area->rg_end, old_end, incnumpage,
-                  newrg)
-      < 0)
-    return -1; /* Map the memory to MEMRAM */
+  if (vm_map_ram (caller, old_end, incnumpage, newrg) < 0)
+    return -1;             /* Map the memory to MEMRAM */
+
+  cur_vma->sbrk += inc_sz; /* Increase the breaking point */
 
   return 0;
 }

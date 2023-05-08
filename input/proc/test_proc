@@ -1,0 +1,9 @@
+1 8
+alloc 255 0
+alloc 256 1
+alloc 511 2
+alloc 512 3
+free 0
+free 1
+free 2
+free 3
