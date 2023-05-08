@@ -166,7 +166,7 @@ MEMPHY_get_freefp (struct memphy_struct *mp, int *retfpn)
 int
 MEMPHY_dump (struct memphy_struct *mp)
 {
-  /*TODO dump memphy contnt mp->storage
+  /*TODO dump memphy content mp->storage
    *     for tracing the memory content
    */
 

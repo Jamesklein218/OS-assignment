@@ -123,6 +123,7 @@ static void *
 ld_routine (void *args)
 {
 #ifdef MM_PAGING
+  /* Loading memory arguments for each process */
   struct memphy_struct *mram = ((struct mmpaging_ld_args *)args)->mram;
   struct memphy_struct **mswp = ((struct mmpaging_ld_args *)args)->mswp;
   struct memphy_struct *active_mswp
@@ -144,7 +145,7 @@ ld_routine (void *args)
           next_slot (timer_id);
         }
 #ifdef MM_PAGING
-      proc->mm = malloc (sizeof (struct mm_struct));
+      proc->mm = malloc (sizeof (struct mm_struct)); /* MMU */
       init_mm (proc->mm, proc);
       proc->mram = mram;
       proc->mswp = mswp;

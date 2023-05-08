@@ -12,7 +12,9 @@
 
 #define PAGING_MEMSWPSZ BIT (14) /* 16MB */
 #define PAGING_SWPFPN_OFFSET 5
-#define PAGING_MAX_PGN (DIV_ROUND_UP (PAGING_CPU_BUS_WIDTH, PAGING_PAGESZ))
+/* Page table size = 2 ^ (paging cpu bus width - page size) */
+#define PAGING_MAX_PGN                                                        \
+  (DIV_ROUND_UP (BIT (PAGING_CPU_BUS_WIDTH), PAGING_PAGESZ))
 
 #define PAGING_SBRK_INIT_SZ PAGING_PAGESZ
 /* PTE BIT */
@@ -149,7 +151,7 @@ int inc_vma_limit (struct pcb_t *caller, int vmaid, int inc_sz);
 int find_victim_page (struct mm_struct *mm, int *pgn);
 struct vm_area_struct *get_vma_by_num (struct mm_struct *mm, int vmaid);
 
-/* MEM/PHY protypes */
+/* MEMPHY protypes */
 int MEMPHY_get_freefp (struct memphy_struct *mp, int *fpn);
 int MEMPHY_put_freefp (struct memphy_struct *mp, int fpn);
 int MEMPHY_read (struct memphy_struct *mp, int addr, BYTE *value);

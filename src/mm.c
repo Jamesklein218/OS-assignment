@@ -95,21 +95,34 @@ vmap_page_range (
     struct framephy_struct *frames, // list of the mapped frames
     struct vm_rg_struct *ret_rg)    // return mapped region, the real mapped fp
 {                                   // no guarantee all given pages are mapped
-  // uint32_t * pte = malloc(sizeof(uint32_t));
-  struct framephy_struct *fpit = malloc (sizeof (struct framephy_struct));
-  // int  fpn;
+  uint32_t *pte;
+  struct framephy_struct *fpit = frames;
   int pgit = 0;
   int pgn = PAGING_PGN (addr);
 
   ret_rg->rg_end = ret_rg->rg_start
       = addr; // at least the very first space is usable
 
-  fpit->fp_next = frames;
-
   /* TODO map range of frame to address space
-   *      [addr to addr + pgnum*PAGING_PAGESZ
+   *      [addr  addr + pgnum*PAGING_PAGESZ
    *      in page table caller->mm->pgd[]
    */
+
+  for (pgit = pgn; pgit < pgnum; pgit++)
+    {
+      /* Page table out of bound */
+      if (pgn + pgit >= PAGING_MAX_PGN)
+        return -2;
+
+      pte = caller->mm->pgd + pgn
+            + pgit; /* Get the address of caller->mm->pgd[pgn + pgit] */
+
+      /* TODO: Init Page table entry for each frame */
+      init_pte (pte, /* present: */ 0, /* fpn: */ fpit->fpn, /* drt: */ 0,
+                /* swp: */ 0, /* swptyp */ 0, /*  swpoff */ 0);
+
+      fpit = fpit->fp_next;
+    }
 
   /* Tracking for later page replacement activities (if needed)
    * Enqueue new usage page */
@@ -124,23 +137,48 @@ vmap_page_range (
  * @req_pgnum : request page num
  * @frm_lst   : frame list
  */
-
 int
 alloc_pages_range (struct pcb_t *caller, int req_pgnum,
                    struct framephy_struct **frm_lst)
 {
   int pgit, fpn;
-  // struct framephy_struct *newfp_str;
+  struct framephy_struct *newfp_head = NULL, *tmp = NULL;
+  struct mm_struct *owner_mm = caller->mm;
 
   for (pgit = 0; pgit < req_pgnum; pgit++)
     {
       if (MEMPHY_get_freefp (caller->mram, &fpn) == 0)
-        {
+        {     /* Add new frame to the new frame list */
+          if (newfp_head != NULL)
+            { /* New frame list is not empty */
+              tmp = malloc (sizeof (struct framephy_struct));
+              tmp->fp_next = newfp_head;
+              tmp->fpn = fpn;
+              tmp->owner = owner_mm;
+
+              newfp_head = tmp;
+              tmp = NULL;
+            }
+          else
+            { /* New frame list is empty, initialize it */
+              newfp_head = malloc (sizeof (struct framephy_struct));
+              newfp_head->fpn = fpn;
+              newfp_head->owner = owner_mm; /* Adding for precaution */
+              newfp_head->fp_next = NULL;
+            }
         }
       else
-        { // ERROR CODE of obtaining somes but not enough frames
+        { /* ERROR CODE */
+          return -3000;
         }
     }
+
+  /* Set the frame list */
+  *frm_lst = newfp_head;
+
+  /* If frame list is empty */
+  if (*frm_lst == NULL)
+    return -1;
 
   return 0;
 }
@@ -170,10 +208,11 @@ vm_map_ram (struct pcb_t *caller, int astart, int aend, int mapstart,
    */
   ret_alloc = alloc_pages_range (caller, incpgnum, &frm_lst);
 
+  /* Frame list are empty */
   if (ret_alloc < 0 && ret_alloc != -3000)
     return -1;
 
-  /* Out of memory */
+  /* Out of RAM */
   if (ret_alloc == -3000)
     {
 #ifdef MMDBG
@@ -184,7 +223,16 @@ vm_map_ram (struct pcb_t *caller, int astart, int aend, int mapstart,
 
   /* it leaves the case of memory is enough but half in ram, half in swap
    * do the swaping all to swapper to get the all in ram */
-  vmap_page_range (caller, mapstart, incpgnum, frm_lst, ret_rg);
+  int map_page_range
+      = vmap_page_range (caller, mapstart, incpgnum, frm_lst, ret_rg);
+
+  if (map_page_range == -2)
+    {
+#ifdef MMDBG
+      printf ("Page map: Page table out of bound");
+#endif
+      return -1;
+    }
 
   return 0;
 }

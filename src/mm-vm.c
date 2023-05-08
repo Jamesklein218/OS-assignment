@@ -85,6 +85,9 @@ __alloc (struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr)
   /*Allocate at the toproof */
   struct vm_rg_struct rgnode;
 
+  /* If found free vmrg_area
+   * return the area to alloc_addr
+   * */
   if (get_free_vmrg_area (caller, vmaid, size, &rgnode) == 0)
     {
       caller->mm->symrgtbl[rgid].rg_start = rgnode.rg_start;
@@ -95,7 +98,7 @@ __alloc (struct pcb_t *caller, int vmaid, int rgid, int size, int *alloc_addr)
       return 0;
     }
 
-  /* TODO get_free_vmrg_area FAILED handle the region management (Fig.6)*/
+  /* get_free_vmrg_area FAILED handle the region management (Fig.6)*/
 
   /*Attempt to increate limit to get space */
   struct vm_area_struct *cur_vma = get_vma_by_num (caller->mm, vmaid);
@@ -383,14 +386,11 @@ free_pcb_memph (struct pcb_t *caller)
 /*get_vm_area_node - get vm area for a number of pages
  *@caller: caller
  *@vmaid: ID vm area to alloc memory region
- *@incpgnum: number of page
- *@vmastart: vma end
- *@vmaend: vma end
- *
+ *@size: aligned size of the new region
+ *@amount: amount of pages
  */
 struct vm_rg_struct *
-get_vm_area_node_at_brk (struct pcb_t *caller, int vmaid, int size,
-                         int alignedsz)
+get_vm_area_node_at_brk (struct pcb_t *caller, int vmaid, int size, int amount)
 {
   struct vm_rg_struct *newrg;
   struct vm_area_struct *cur_vma = get_vma_by_num (caller->mm, vmaid);
@@ -398,7 +398,7 @@ get_vm_area_node_at_brk (struct pcb_t *caller, int vmaid, int size,
   newrg = malloc (sizeof (struct vm_rg_struct));
 
   newrg->rg_start = cur_vma->sbrk;
-  newrg->rg_end = newrg->rg_start + size;
+  newrg->rg_end = cur_vma->sbrk + size;
 
   return newrg;
 }
@@ -414,9 +414,10 @@ int
 validate_overlap_vm_area (struct pcb_t *caller, int vmaid, int vmastart,
                           int vmaend)
 {
-  // struct vm_area_struct *vma = caller->mm->mmap;
-
   /* TODO validate the planned memory area is not overlapped */
+  /* Since we only have one region in this assignment,
+   * We don't need this method
+   */
 
   return 0;
 }
@@ -431,7 +432,8 @@ int
 inc_vma_limit (struct pcb_t *caller, int vmaid, int inc_sz)
 {
   struct vm_rg_struct *newrg = malloc (sizeof (struct vm_rg_struct));
-  int inc_amt = PAGING_PAGE_ALIGNSZ (inc_sz);
+  int inc_amt = PAGING_PAGE_ALIGNSZ (
+      inc_sz); /* increment amount: align to match pages size */
   int incnumpage = inc_amt / PAGING_PAGESZ;
   struct vm_rg_struct *area
       = get_vm_area_node_at_brk (caller, vmaid, inc_sz, inc_amt);
