@@ -95,13 +95,8 @@ __alloc (struct pcb_t *caller, int vmaid, int rgid, int size,
 
       *alloc_addr = rgnode.rg_start;
 
-      printf ("\tAllocating memory %d units, page size %d\n",
-              caller->mm->symrgtbl[rgid].rg_end - *alloc_addr, PAGING_PAGESZ);
-
       return 0;
     }
-
-  /* TODO: get_free_vmrg_area FAILED handle the region management (Fig.6)*/
 
   /*Attempt to increate limit to get space */
   int inc_sz = PAGING_PAGE_ALIGNSZ (size);
@@ -118,9 +113,6 @@ __alloc (struct pcb_t *caller, int vmaid, int rgid, int size,
     return -1;
 
   *alloc_addr = caller->mm->symrgtbl[rgid].rg_start;
-
-  printf ("\tAllocating memory %d units, page size %d\n",
-          caller->mm->symrgtbl[rgid].rg_end - *alloc_addr, PAGING_PAGESZ);
 
   return 0;
 }
@@ -146,9 +138,6 @@ __free (struct pcb_t *caller, int vmaid, int rgid)
   /*enlist the obsoleted memory region */
   enlist_vm_freerg_list (caller->mm, rgnode);
 
-  printf ("\tFreeing memory %d units %d\n",
-          caller->mm->symrgtbl[rgid].rg_end
-              - caller->mm->symrgtbl[rgid].rg_start);
   return 0;
 }
 
@@ -192,24 +181,42 @@ pg_getpage (struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
 
   if (!PAGING_PAGE_PRESENT (pte))
     { /* Page is not online, make it actively living */
+      struct memphy_struct *swpsrc = NULL;
       int vicpgn, swpfpn;
-      // int vicfpn;
-      // uint32_t vicpte;
+      int vicfpn;      /* TODO (khoa): Find the victim frame page number */
+      uint32_t vicpte; /* TODO (khoa): Find the victim page entry */
 
       int tgtfpn = PAGING_SWP (pte); // the target frame storing our variable
 
-      /* TODO: Play with your paging theory here */
       /* Find victim page */
-      find_victim_page (caller->mm, &vicpgn);
+      if (find_victim_page (caller->mm, &vicpgn) != 0)
+        return -1; /* Invalid page access */
 
       /* Get free frame in MEMSWP */
-      MEMPHY_get_freefp (caller->active_mswp, &swpfpn);
+      if (MEMPHY_get_freefp (caller->active_mswp, &swpfpn) != 0)
+        { /* If active memory swap is full, search through other MEMSWP */
+          int sit;
+          for (sit = 1; sit < PAGING_MAX_MMSWP; sit++)
+            {
+              if (MEMPHY_get_freefp (caller->mswp[sit], &swpfpn))
+                {
+                  swpsrc = caller->mswp[sit];
+                  break;
+                }
+            }
+          if (sit == PAGING_MAX_MMSWP)
+            return -1; /* Cannot find any frame */
+        }
+      else
+        {
+          swpsrc = caller->active_mswp;
+        }
 
       /* Do swap frame from MEMRAM to MEMSWP and vice versa*/
       /* Copy victim frame to swap */
-      //__swap_cp_page();
+      // __swap_cp_page();
       /* Copy target frame from swap to mem */
-      //__swap_cp_page();
+      // __swap_cp_page();
 
       /* Update page table */
       // pte_set_swap() &mm->pgd;
@@ -245,9 +252,7 @@ pg_getval (struct mm_struct *mm, int addr, BYTE *data, struct pcb_t *caller)
 
   int phyaddr = (fpn << PAGING_ADDR_FPN_LOBIT) + off;
 
-  MEMPHY_read (caller->mram, phyaddr, data);
-
-  return 0;
+  return MEMPHY_read (caller->mram, phyaddr, data);
 }
 
 /*pg_setval - write value to given offset
@@ -269,9 +274,7 @@ pg_setval (struct mm_struct *mm, int addr, BYTE value, struct pcb_t *caller)
 
   int phyaddr = (fpn << PAGING_ADDR_FPN_LOBIT) + off;
 
-  MEMPHY_write (caller->mram, phyaddr, value);
-
-  return 0;
+  return MEMPHY_write (caller->mram, phyaddr, value);
 }
 
 /*__read - read value in region memory
@@ -470,11 +473,24 @@ inc_vma_limit (struct pcb_t *caller, int vmaid, int inc_sz,
 int
 find_victim_page (struct mm_struct *mm, int *retpgn)
 {
-  struct pgn_t *pg = mm->fifo_pgn;
+  struct pgn_t **pg = &mm->fifo_pgn;
 
   /* TODO: Implement the theorical mechanism to find the victim page */
+  if (*pg == NULL)
+    { /* No page has been allocated */
+      return -1;
+    }
 
-  free (pg);
+  while ((*pg)->pg_next != NULL)
+    { /* Move to the last node */
+      pg = &((*pg)->pg_next);
+    }
+
+  struct pgn_t *free_node = *pg;
+
+  *pg = NULL;       /* Resetting the previous last node to NULL */
+
+  free (free_node); /* Free the last node */
 
   return 0;
 }
