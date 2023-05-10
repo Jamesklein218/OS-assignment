@@ -115,7 +115,7 @@ vmap_page_range (
         return -2;
 
       /* Get the address of caller->mm->pgd[pgn + pgit] */
-      pte = caller->mm->pgd + pgn + pgit;
+      pte = &caller->mm->pgd[pgn + pgit];
 
       /* Page table entry for each frame,
        * initially every frame is presented */

@@ -82,7 +82,6 @@ int
 __alloc (struct pcb_t *caller, int vmaid, int rgid, int size,
          uint32_t *alloc_addr)
 {
-  printf ("__alloc\n");
   /*Allocate at the toproof */
   struct vm_rg_struct rgnode;
 
@@ -128,7 +127,6 @@ __alloc (struct pcb_t *caller, int vmaid, int rgid, int size,
 int
 __free (struct pcb_t *caller, int vmaid, int rgid)
 {
-  printf ("__free\n");
   struct vm_rg_struct rgnode;
 
   if (rgid < 0 || rgid > PAGING_MAX_SYMTBL_SZ)
@@ -281,7 +279,6 @@ pg_setval (struct mm_struct *mm, int addr, BYTE value, struct pcb_t *caller)
 int
 __read (struct pcb_t *caller, int vmaid, int rgid, int offset, BYTE *data)
 {
-  printf ("\__read\n");
   struct vm_rg_struct *currg = get_symrg_byid (caller->mm, rgid);
 
   struct vm_area_struct *cur_vma = get_vma_by_num (caller->mm, vmaid);
@@ -327,7 +324,6 @@ pgread (struct pcb_t *proc, // Process executing the instruction
 int
 __write (struct pcb_t *caller, int vmaid, int rgid, int offset, BYTE value)
 {
-  printf ("\t__write\n");
   struct vm_rg_struct *currg = get_symrg_byid (caller->mm, rgid);
 
   struct vm_area_struct *cur_vma = get_vma_by_num (caller->mm, vmaid);
