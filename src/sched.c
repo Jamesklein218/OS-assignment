@@ -71,6 +71,7 @@ queue_time_up ()
 struct pcb_t *
 get_mlq_proc (void)
 {
+  pthread_mutex_lock (&queue_lock);
   struct pcb_t *proc = NULL;
   /* Get a process from PRIORITY [mlq_ready_queue].
    * Remember to use lock to protect the queue.
@@ -78,7 +79,10 @@ get_mlq_proc (void)
 
   /* Check if the ENTIRE MULTI-QUEUE is empty */
   if (queue_empty ())
-    return proc;
+    {
+      pthread_mutex_unlock (&queue_lock);
+      return proc;
+    }
 
   /* Finding the highest priority queue available */
   uint32_t prio;
@@ -105,6 +109,7 @@ get_mlq_proc (void)
    * */
 
   proc = dequeue (&mlq_ready_queue[curr_prio]);
+  pthread_mutex_unlock (&queue_lock);
   return proc;
 }
 
