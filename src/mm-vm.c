@@ -183,46 +183,37 @@ pg_getpage (struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
     { /* Page is not online, make it actively living */
       struct memphy_struct *swpsrc = NULL;
       int vicpgn, swpfpn;
-      int vicfpn;      /* TODO (khoa): Find the victim frame page number */
-      uint32_t vicpte; /* TODO (khoa): Find the victim page entry */
+      int vicfpn;
+      uint32_t vicpte;
+      int swptype
+          = 0; /* We only have one swap devices which is the first one */
 
-      int tgtfpn = PAGING_SWP (pte); // the target frame storing our variable
+      int tgtfpn = PAGING_SWP (pte); // The target frame storing our variable
 
-      /* Find victim page */
+      /* Find and pop victim page out */
       if (find_victim_page (caller->mm, &vicpgn) != 0)
-        return -1; /* Invalid page access */
+        return -1;                  /* Invalid page access */
+
+      vicpte = mm->pgd[vicpgn];     /* Get victim's page entry */
+
+      vicfpn = PAGING_FPN (vicpte); /* Get victim's frame number */
 
       /* Get free frame in MEMSWP */
       if (MEMPHY_get_freefp (caller->active_mswp, &swpfpn) != 0)
-        { /* If active memory swap is full, search through other MEMSWP */
-          int sit;
-          for (sit = 1; sit < PAGING_MAX_MMSWP; sit++)
-            {
-              if (MEMPHY_get_freefp (caller->mswp[sit], &swpfpn))
-                {
-                  swpsrc = caller->mswp[sit];
-                  break;
-                }
-            }
-          if (sit == PAGING_MAX_MMSWP)
-            return -1; /* Cannot find any frame */
-        }
+        return -1;
       else
-        {
-          swpsrc = caller->active_mswp;
-        }
+        swpsrc = caller->active_mswp;
 
       /* Do swap frame from MEMRAM to MEMSWP and vice versa*/
       /* Copy victim frame to swap */
-      // __swap_cp_page();
+      __swap_cp_page (caller->mram, vicfpn, swpsrc, swpfpn);
       /* Copy target frame from swap to mem */
-      // __swap_cp_page();
+      __swap_cp_page (caller->active_mswp, tgtfpn, caller->mram, vicfpn);
 
-      /* Update page table */
-      // pte_set_swap() &mm->pgd;
+      /* Update pte of victim to swap */
+      pte_set_swap (&mm->pgd[vicpgn], swptype, vicfpn);
 
-      /* Update its online status of the target page */
-      // pte_set_fpn() & mm->pgd[pgn];
+      /* Update the target page online status */
       pte_set_fpn (&pte, tgtfpn);
 
       enlist_pgn_node (&caller->mm->fifo_pgn, pgn);
@@ -300,7 +291,7 @@ __read (struct pcb_t *caller, int vmaid, int rgid, int offset, BYTE *data)
   return 0;
 }
 
-/*pgwrite - PAGING-based read a region memory */
+/*pgread - PAGING-based read a region memory */
 int
 pgread (struct pcb_t *proc, // Process executing the instruction
         uint32_t source,    // Index of source register
@@ -475,7 +466,7 @@ find_victim_page (struct mm_struct *mm, int *retpgn)
 {
   struct pgn_t **pg = &mm->fifo_pgn;
 
-  /* TODO: Implement the theorical mechanism to find the victim page */
+  /* Implement the FIFO mechanism to find the victim page */
   if (*pg == NULL)
     { /* No page has been allocated */
       return -1;
