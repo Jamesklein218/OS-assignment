@@ -6,6 +6,10 @@
 
 #include "mm.h"
 #include <stdlib.h>
+#include <pthread.h>
+
+/* Lock for the whole memphy space */
+static pthread_mutex_t memphy_lock;
 
 /*
  *  MEMPHY_mv_csr - move MEMPHY cursor
@@ -40,12 +44,17 @@ MEMPHY_seq_read (struct memphy_struct *mp, int addr, BYTE *value)
   if (mp == NULL)
     return -1;
 
+  pthread_mutex_lock (&memphy_lock); /* Locking critical section */
   if (!mp->rdmflg)
-    return -1; /* Not compatible mode for sequential read */
+    {
+      pthread_mutex_unlock (&memphy_lock);
+      return -1; /* Not compatible mode for sequential read */
+    }
 
   MEMPHY_mv_csr (mp, addr);
   *value = (BYTE)mp->storage[addr];
 
+  pthread_mutex_unlock (&memphy_lock);
   return 0;
 }
 
@@ -62,7 +71,13 @@ MEMPHY_read (struct memphy_struct *mp, int addr, BYTE *value)
     return -1;
 
   if (mp->rdmflg)
-    *value = mp->storage[addr];
+    {
+      pthread_mutex_lock (&memphy_lock); /* Locking critical section */
+
+      *value = mp->storage[addr];
+
+      pthread_mutex_unlock (&memphy_lock);
+    }
   else /* Sequential access device */
     return MEMPHY_seq_read (mp, addr, value);
 
@@ -82,11 +97,17 @@ MEMPHY_seq_write (struct memphy_struct *mp, int addr, BYTE value)
   if (mp == NULL)
     return -1;
 
+  pthread_mutex_lock (&memphy_lock); /* Locking critical section */
   if (!mp->rdmflg)
-    return -1; /* Not compatible mode for sequential read */
+    {
+      pthread_mutex_unlock (&memphy_lock);
+      return -1; /* Not compatible mode for sequential read */
+    }
 
   MEMPHY_mv_csr (mp, addr);
   mp->storage[addr] = value;
+
+  pthread_mutex_unlock (&memphy_lock);
 
   return 0;
 }
@@ -104,7 +125,11 @@ MEMPHY_write (struct memphy_struct *mp, int addr, BYTE data)
     return -1;
 
   if (mp->rdmflg)
-    mp->storage[addr] = data;
+    {
+      pthread_mutex_lock (&memphy_lock); /* Locking critical section */
+      mp->storage[addr] = data;
+      pthread_mutex_unlock (&memphy_lock);
+    }
   else /* Sequential access device */
     return MEMPHY_seq_write (mp, addr, data);
 
@@ -147,6 +172,7 @@ MEMPHY_format (struct memphy_struct *mp, int pagesz)
 int
 MEMPHY_get_freefp (struct memphy_struct *mp, int *retfpn)
 {
+  pthread_mutex_lock (&memphy_lock); /* Locking critical section */
   struct framephy_struct *fp = mp->free_fp_list;
 
   if (fp == NULL)
@@ -160,15 +186,19 @@ MEMPHY_get_freefp (struct memphy_struct *mp, int *retfpn)
    */
   free (fp);
 
+  pthread_mutex_unlock (&memphy_lock);
+
   return 0;
 }
 
 int
 MEMPHY_dump (struct memphy_struct *mp)
 {
-  /*TODO dump memphy content mp->storage
-   *     for tracing the memory content
+  /* Dump memphy content mp->storage
+   * for tracing the memory content
    */
+
+  /* Debugging purpose only */
 
   return 0;
 }
@@ -176,6 +206,7 @@ MEMPHY_dump (struct memphy_struct *mp)
 int
 MEMPHY_put_freefp (struct memphy_struct *mp, int fpn)
 {
+  pthread_mutex_lock (&memphy_lock); /* Locking critical section */
   struct framephy_struct *fp = mp->free_fp_list;
   struct framephy_struct *newnode = malloc (sizeof (struct framephy_struct));
 
@@ -183,6 +214,8 @@ MEMPHY_put_freefp (struct memphy_struct *mp, int fpn)
   newnode->fpn = fpn;
   newnode->fp_next = fp;
   mp->free_fp_list = newnode;
+
+  pthread_mutex_unlock (&memphy_lock);
 
   return 0;
 }
@@ -202,6 +235,8 @@ init_memphy (struct memphy_struct *mp, int max_size, int randomflg)
 
   if (!mp->rdmflg) /* Not Ramdom acess device, then it serial device*/
     mp->cursor = 0;
+
+  pthread_mutex_init (&memphy_lock, NULL);
 
   return 0;
 }
