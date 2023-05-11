@@ -12,21 +12,26 @@
 /*enlist_vm_freerg_list - add new rg to freerg_list
  *@mm: memory region
  *@rg_elmt: new region
- *
  */
 int
 enlist_vm_freerg_list (struct mm_struct *mm, struct vm_rg_struct rg_elmt)
 {
   struct vm_rg_struct *rg_node = mm->mmap->vm_freerg_list;
+  struct vm_rg_struct *new_rgnode = malloc (sizeof (struct vm_rg_struct));
 
   if (rg_elmt.rg_start >= rg_elmt.rg_end)
     return -1;
 
   if (rg_node != NULL)
-    rg_elmt.rg_next = rg_node;
+    {
+      new_rgnode->rg_next = rg_node;
+    }
+
+  new_rgnode->rg_start = rg_elmt.rg_start;
+  new_rgnode->rg_end = rg_elmt.rg_end;
 
   /* Enlist the new region */
-  mm->mmap->vm_freerg_list = &rg_elmt;
+  mm->mmap->vm_freerg_list = new_rgnode;
 
   return 0;
 }
@@ -34,7 +39,6 @@ enlist_vm_freerg_list (struct mm_struct *mm, struct vm_rg_struct rg_elmt)
 /*get_vma_by_num - get vm area by numID
  *@mm: memory region
  *@vmaid: ID vm area to alloc memory region
- *
  */
 struct vm_area_struct *
 get_vma_by_num (struct mm_struct *mm, int vmaid)
@@ -192,11 +196,12 @@ pg_getpage (struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
 
       /* Find and pop victim page out */
       if (find_victim_page (caller->mm, &vicpgn) != 0)
-        return -1;                  /* Invalid page access */
+        return -1;              /* Invalid page access */
 
-      vicpte = mm->pgd[vicpgn];     /* Get victim's page entry */
+      vicpte = mm->pgd[vicpgn]; /* Get victim's page entry */
 
-      vicfpn = PAGING_FPN (vicpte); /* Get victim's frame number */
+      vicfpn = GETVAL (vicpte, PAGING_PTE_FPN_MASK,
+                       PAGING_PTE_FPN_LOBIT); /* Get victim's frame number */
 
       /* Get free frame in MEMSWP */
       if (MEMPHY_get_freefp (caller->active_mswp, &swpfpn) != 0)
@@ -219,7 +224,7 @@ pg_getpage (struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
       enlist_pgn_node (&caller->mm->fifo_pgn, pgn);
     }
 
-  *fpn = PAGING_FPN (pte);
+  *fpn = GETVAL (mm->pgd[pgn], PAGING_PTE_FPN_MASK, PAGING_PTE_FPN_LOBIT);
 
   return 0;
 }
