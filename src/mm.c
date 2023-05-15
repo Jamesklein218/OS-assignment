@@ -127,11 +127,11 @@ vmap_page_range (
 
       fpit = fpit->fp_next;            /* proceed to the next physical frame */
       ret_rg->rg_end += PAGING_PAGESZ; /* Add page end to one page size */
-    }
 
-  /* Tracking for later page replacement activities (if needed)
-   * Enqueue new usage page */
-  enlist_pgn_node (&caller->mm->fifo_pgn, pgn + pgit);
+      /* Tracking for later page replacement activities (if needed)
+       * Enqueue new usage page */
+      enlist_pgn_node (&caller->mm->fifo_pgn, pgn + pgit);
+    }
 
   return 0;
 }
@@ -150,16 +150,12 @@ alloc_pages_range (struct pcb_t *caller, int req_pgnum,
   struct framephy_struct *newfp_head = NULL, *tmp = NULL;
   struct mm_struct *owner_mm = caller->mm;
 
-/* Perform allocating procedure for each page iterable
- * If we cannot find the free frame,
- * find it in swap and swap it with
- * an victim page found on the global
- * FIFO
- * */
-#ifdef MMDBG
-  print_list_fp (caller->mram->free_fp_list);
-  print_list_pgn (caller->mm->fifo_pgn);
-#endif
+  /* Perform allocating procedure for each page iterable
+   * If we cannot find the free frame,
+   * find it in swap and swap it with
+   * an victim page found on the global
+   * FIFO
+   * */
   for (pgit = 0; pgit < req_pgnum; pgit++)
     {
       if (MEMPHY_get_freefp (caller->mram, &fpn) != 0)
@@ -172,10 +168,11 @@ alloc_pages_range (struct pcb_t *caller, int req_pgnum,
               = 0; /* We only have one swap devices which is the first one */
 
           /* Find and pop victim page out */
+
           if (find_victim_page (caller->mm, &vicpgn) != 0)
             {
 #ifdef MMDBG
-              printf ("\t Here 1\n");
+              printf ("\t Cannot find victim page\n");
 #endif
               return -1; /* Invalid page access */
             }
@@ -189,9 +186,6 @@ alloc_pages_range (struct pcb_t *caller, int req_pgnum,
           /* Get free frame in MEMSWP */
           if (MEMPHY_get_freefp (caller->active_mswp, &swpfpn) != 0)
             {
-#ifdef MMDBG
-              printf ("\t Here 2\n");
-#endif
               return -1;
             }
           else
@@ -234,9 +228,6 @@ alloc_pages_range (struct pcb_t *caller, int req_pgnum,
   /* If frame list is empty */
   if (*frm_lst == NULL)
     {
-#ifdef MMDBG
-      printf ("\t Here 1\n");
-#endif }
       return -1;
     }
 

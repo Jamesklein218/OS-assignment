@@ -91,7 +91,7 @@ struct pcb_t
   struct memphy_struct **mswp;
   struct memphy_struct *active_mswp;
 
-  struct pthread_mutex_t *mlock;
+  pthread_mutex_t *mlock;
 #endif
   struct page_table_t *page_table; // Page table
   uint32_t bp;                     // Break pointer

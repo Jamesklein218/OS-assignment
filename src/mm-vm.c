@@ -10,9 +10,6 @@
 #include <stdlib.h>
 #include <pthread.h>
 
-/* Physical Memory Lock */
-static pthread_mutex_t memphy_lock;
-
 /*enlist_vm_freerg_list - add new rg to freerg_list
  *@mm: memory region
  *@rg_elmt: new region
@@ -101,7 +98,7 @@ __alloc (struct pcb_t *caller, int vmaid, int rgid, int size,
       caller->mm->symrgtbl[rgid].rg_start = rgnode.rg_start;
       caller->mm->symrgtbl[rgid].rg_end = rgnode.rg_end;
 #ifdef MMDBG
-      printf ("\t[ALLOC] get free region %d %d\n", rgnode.rg_start,
+      printf ("\t[ALLOC] get free region %lu %lu\n", rgnode.rg_start,
               rgnode.rg_end);
 #endif
 
@@ -146,10 +143,6 @@ __free (struct pcb_t *caller, int vmaid, int rgid)
   /* Manage the collect freed region to freerg_list */
   rgnode = caller->mm->symrgtbl[rgid];
 
-#ifdef MMDBG
-  print_list_fp (caller->mm->mmap->vm_freerg_list);
-#endif
-
   /*enlist the obsoleted memory region */
   enlist_vm_freerg_list (caller->mm, rgnode);
 
@@ -164,6 +157,10 @@ __free (struct pcb_t *caller, int vmaid, int rgid)
 int
 pgalloc (struct pcb_t *proc, uint32_t size, uint32_t reg_index)
 {
+
+#ifdef MMDBG
+  printf ("\talloc PID=%d size=%d region=%d\n", proc->pid, size, reg_index);
+#endif
   uint32_t addr;
 
   /* By default using vmaid = 0 */
@@ -179,6 +176,9 @@ pgalloc (struct pcb_t *proc, uint32_t size, uint32_t reg_index)
 int
 pgfree_data (struct pcb_t *proc, uint32_t reg_index)
 {
+#ifdef MMDBG
+  printf ("free PID=%d region=%d\n", proc->pid, reg_index);
+#endif
   return __free (proc, 0, reg_index);
 }
 
@@ -323,7 +323,7 @@ pgread (struct pcb_t *proc, // Process executing the instruction
 
   destination = (uint32_t)data;
 #ifdef IODUMP
-  printf ("read region=%d offset=%d value=%d\n", source, offset, data);
+  printf ("\tread PID=%d region=%d offset=%d value=%d\n", proc->pid, source, offset, data);
 #ifdef PAGETBL_DUMP
   print_pgtbl (proc, 0, -1); // print max TBL
 #endif
@@ -368,7 +368,7 @@ pgwrite (struct pcb_t *proc,   // Process executing the instruction
          uint32_t offset)
 {
 #ifdef IODUMP
-  printf ("write region=%d offset=%d value=%d\n", destination, offset, data);
+  printf ("\twrite PID=%d region=%d offset=%d value=%d\n", proc->pid, destination, offset, data);
 #ifdef PAGETBL_DUMP
   print_pgtbl (proc, 0, -1); // print max TBL
 #endif
