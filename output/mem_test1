@@ -1,0 +1,215 @@
+Time slot   0
+ld_routine
+Time slot   1
+	Loaded a process at input/proc/s5, PID: 1 PRIO: 130
+Time slot   2
+	CPU 1: Dispatched process  1
+alloc size=150 region=2
+print_list_fp: 
+fp[1]
+fp[2]
+fp[3]
+fp[4]
+
+print_list_pgn: NULL list
+	[ALLOC] 80000001 1
+	Loaded a process at input/proc/s5, PID: 2 PRIO: 39
+Time slot   3
+alloc size=300 region=1
+print_list_fp: 
+fp[2]
+fp[3]
+fp[4]
+
+print_list_pgn: 
+va[1]-
+n	[ALLOC] 80000003 3
+	[ALLOC] 80000002 2
+	CPU 0: Dispatched process  2
+alloc size=150 region=2
+print_list_fp: 
+fp[4]
+
+print_list_pgn: NULL list
+	[ALLOC] 80000004 4
+Time slot   4
+	Loaded a process at input/proc/s5, PID: 3 PRIO: 15
+alloc size=300 region=1
+print_list_fp: NULL list
+print_list_pgn: 
+va[1]-
+n	CPU 1: Put process  1 to run queue
+	CPU 1: Dispatched process  3
+alloc size=150 region=2
+print_list_fp: NULL list
+print_list_pgn: NULL list
+	 Here 1
+	 Here 1
+Time slot   5
+alloc size=300 region=1
+print_list_fp: NULL list
+print_list_pgn: NULL list
+	 Here 1
+	CPU 0: Put process  2 to run queue
+	CPU 0: Dispatched process  2
+write region=1 offset=19 value=124
+print_pgtbl: 0 - 768
+00000000: c0000080
+00000004: 00000000
+00000008: 00000000
+Time slot   6
+write region=1 offset=19 value=123
+print_pgtbl: 0 - 768
+00000000: c0000080
+00000004: 00000000
+00000008: 00000000
+	CPU 1: Put process  3 to run queue
+	CPU 1: Dispatched process  3
+write region=1 offset=19 value=124
+print_pgtbl: 0 - 768
+00000000: 00000000
+00000004: 00000000
+00000008: 00000000
+Time slot   7
+	CPU 0: Put process  2 to run queue
+	CPU 0: Dispatched process  2
+write region=1 offset=19 value=123
+print_pgtbl: 0 - 768
+00000000: 00000000
+00000004: 00000000
+00000008: 00000000
+read region=1 offset=20 value=0
+print_pgtbl: 0 - 768
+00000000: c0000080
+00000004: 00000000
+00000008: 00000000
+Time slot   8
+	CPU 1: Put process  3 to run queue
+	CPU 1: Dispatched process  3
+read region=1 offset=20 value=-89
+print_pgtbl: 0 - 768
+00000000: 00000000
+00000004: 00000000
+00000008: 00000000
+read region=1 offset=19 value=123
+print_pgtbl: 0 - 768
+00000000: c0000080
+00000004: 00000000
+00000008: 00000000
+Time slot   9
+	CPU 0: Put process  2 to run queue
+read region=1 offset=19 value=0
+print_pgtbl: 0 - 768
+00000000: 00000000
+00000004: 00000000
+00000008: 00000000
+	CPU 0: Dispatched process  2
+write region=1 offset=20 value=124
+print_pgtbl: 0 - 768
+00000000: c0000080
+00000004: 00000000
+00000008: 00000000
+Time slot  10
+	CPU 1: Put process  3 to run queue
+	CPU 1: Dispatched process  3
+write region=1 offset=20 value=124
+print_pgtbl: 0 - 768
+00000000: 00000000
+00000004: 00000000
+00000008: 00000000
+read region=1 offset=20 value=124
+print_pgtbl: 0 - 768
+00000000: c0000080
+00000004: 00000000
+00000008: 00000000
+Time slot  11
+read region=1 offset=20 value=0
+print_pgtbl: 0 - 768
+00000000: 00000000
+00000004: 00000000
+00000008: 00000000
+	CPU 0: Put process  2 to run queue
+	CPU 0: Dispatched process  2
+read region=1 offset=19 value=123
+print_pgtbl: 0 - 768
+00000000: c0000080
+00000004: 00000000
+00000008: 00000000
+Time slot  12
+	CPU 1: Put process  3 to run queue
+free region=0
+	CPU 1: Dispatched process  3
+read region=1 offset=19 value=-89
+print_pgtbl: 0 - 768
+00000000: 00000000
+00000004: 00000000
+00000008: 00000000
+Time slot  13
+	CPU 0: Put process  2 to run queue
+	CPU 0: Dispatched process  2
+free region=0
+free region=0
+Time slot  14
+	CPU 1: Put process  3 to run queue
+	CPU 1: Dispatched process  3
+free region=0
+	CPU 0: Processed  2 has finished
+	CPU 0: Dispatched process  1
+write region=1 offset=19 value=124
+print_pgtbl: 0 - 768
+00000000: 80000001
+00000004: 80000003
+00000008: 80000002
+Time slot  15
+	CPU 1: Processed  3 has finished
+	CPU 1 stopped
+write region=1 offset=19 value=123
+print_pgtbl: 0 - 768
+00000000: 80000001
+00000004: 80000003
+00000008: 80000002
+Time slot  16
+	CPU 0: Put process  1 to run queue
+	CPU 0: Dispatched process  1
+read region=1 offset=20 value=0
+print_pgtbl: 0 - 768
+00000000: 80000001
+00000004: 80000003
+00000008: 80000002
+Time slot  17
+read region=1 offset=19 value=123
+print_pgtbl: 0 - 768
+00000000: 80000001
+00000004: 80000003
+00000008: 80000002
+Time slot  18
+	CPU 0: Put process  1 to run queue
+	CPU 0: Dispatched process  1
+write region=1 offset=20 value=124
+print_pgtbl: 0 - 768
+00000000: 80000001
+00000004: 80000003
+00000008: 80000002
+Time slot  19
+read region=1 offset=20 value=124
+print_pgtbl: 0 - 768
+00000000: 80000001
+00000004: 80000003
+00000008: 80000002
+Time slot  20
+	CPU 0: Put process  1 to run queue
+	CPU 0: Dispatched process  1
+read region=1 offset=19 value=123
+print_pgtbl: 0 - 768
+00000000: 80000001
+00000004: 80000003
+00000008: 80000002
+Time slot  21
+free region=0
+Time slot  22
+	CPU 0: Put process  1 to run queue
+	CPU 0: Dispatched process  1
+free region=0
+Time slot  23
+	CPU 0: Processed  1 has finished
+	CPU 0 stopped

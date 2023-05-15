@@ -122,7 +122,7 @@ vmap_page_range (
       init_pte (pte, /* present: */ 1, /* fpn: */ fpit->fpn, /* drt: */ 0,
                 /* swp: */ 0, /* swptyp */ 0, /*  swpoff */ 0);
 #ifdef MMDBG
-      printf ("\t[ALLOC] %08x\n", *pte);
+      printf ("\t[ALLOC] %08x %d\n", *pte, fpit->fpn);
 #endif
 
       fpit = fpit->fp_next;            /* proceed to the next physical frame */
@@ -150,12 +150,16 @@ alloc_pages_range (struct pcb_t *caller, int req_pgnum,
   struct framephy_struct *newfp_head = NULL, *tmp = NULL;
   struct mm_struct *owner_mm = caller->mm;
 
-  /* Perform allocating procedure for each page iterable
-   * If we cannot find the free frame,
-   * find it in swap and swap it with
-   * an victim page found on the global
-   * FIFO
-   * */
+/* Perform allocating procedure for each page iterable
+ * If we cannot find the free frame,
+ * find it in swap and swap it with
+ * an victim page found on the global
+ * FIFO
+ * */
+#ifdef MMDBG
+  print_list_fp (caller->mram->free_fp_list);
+  print_list_pgn (caller->mm->fifo_pgn);
+#endif
   for (pgit = 0; pgit < req_pgnum; pgit++)
     {
       if (MEMPHY_get_freefp (caller->mram, &fpn) != 0)
@@ -169,7 +173,12 @@ alloc_pages_range (struct pcb_t *caller, int req_pgnum,
 
           /* Find and pop victim page out */
           if (find_victim_page (caller->mm, &vicpgn) != 0)
-            return -1;                      /* Invalid page access */
+            {
+#ifdef MMDBG
+              printf ("\t Here 1\n");
+#endif
+              return -1; /* Invalid page access */
+            }
 
           vicpte = caller->mm->pgd[vicpgn]; /* Get victim's page entry */
 
@@ -179,7 +188,12 @@ alloc_pages_range (struct pcb_t *caller, int req_pgnum,
 
           /* Get free frame in MEMSWP */
           if (MEMPHY_get_freefp (caller->active_mswp, &swpfpn) != 0)
-            return -1;
+            {
+#ifdef MMDBG
+              printf ("\t Here 2\n");
+#endif
+              return -1;
+            }
           else
             swpsrc = caller->active_mswp;
 
@@ -219,7 +233,12 @@ alloc_pages_range (struct pcb_t *caller, int req_pgnum,
 
   /* If frame list is empty */
   if (*frm_lst == NULL)
-    return -1;
+    {
+#ifdef MMDBG
+      printf ("\t Here 1\n");
+#endif }
+      return -1;
+    }
 
   return 0;
 }
