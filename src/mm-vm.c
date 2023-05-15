@@ -146,6 +146,10 @@ __free (struct pcb_t *caller, int vmaid, int rgid)
   /* Manage the collect freed region to freerg_list */
   rgnode = caller->mm->symrgtbl[rgid];
 
+#ifdef MMDBG
+  print_list_fp (caller->mm->mmap->vm_freerg_list);
+#endif
+
   /*enlist the obsoleted memory region */
   enlist_vm_freerg_list (caller->mm, rgnode);
 
