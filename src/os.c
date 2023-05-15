@@ -18,6 +18,8 @@ static int done = 0;
 static int memramsz;
 static int memswpsz[PAGING_MAX_MMSWP];
 
+pthread_mutex_t mlock; /* Global lock for physical memory */
+
 struct mmpaging_ld_args
 {
   /* A dispatched argument struct to compact many-fields passing to loader */
@@ -149,6 +151,7 @@ ld_routine (void *args)
       proc->mram = mram;
       proc->mswp = mswp;
       proc->active_mswp = active_mswp;
+      proc->mlock = (pthread_mutex_t *)&mlock;
 #endif
       printf ("\tLoaded a process at %s, PID: %d PRIO: %ld\n",
               ld_processes.path[i], proc->pid, ld_processes.prio[i]);

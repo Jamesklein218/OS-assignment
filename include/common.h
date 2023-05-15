@@ -4,6 +4,7 @@
 /* Define structs and routine could be used by every source files */
 
 #include <stdint.h>
+#include <pthread.h>
 
 #ifndef OSCFG_H
 #include "os-cfg.h"
@@ -89,6 +90,8 @@ struct pcb_t
   struct memphy_struct *mram;
   struct memphy_struct **mswp;
   struct memphy_struct *active_mswp;
+
+  struct pthread_mutex_t *mlock;
 #endif
   struct page_table_t *page_table; // Page table
   uint32_t bp;                     // Break pointer

@@ -8,6 +8,10 @@
 #include "string.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <pthread.h>
+
+/* Physical Memory Lock */
+static pthread_mutex_t memphy_lock;
 
 /*enlist_vm_freerg_list - add new rg to freerg_list
  *@mm: memory region
@@ -291,7 +295,11 @@ __read (struct pcb_t *caller, int vmaid, int rgid, int offset, BYTE *data)
   if (currg == NULL || cur_vma == NULL) /* Invalid memory identify */
     return -1;
 
+  pthread_mutex_lock (caller->mlock);
+
   pg_getval (caller->mm, currg->rg_start + offset, data, caller);
+
+  pthread_mutex_unlock (caller->mlock);
 
   return 0;
 }
@@ -336,7 +344,11 @@ __write (struct pcb_t *caller, int vmaid, int rgid, int offset, BYTE value)
   if (currg == NULL || cur_vma == NULL) /* Invalid memory identify */
     return -1;
 
+  pthread_mutex_lock (caller->mlock);
+
   pg_setval (caller->mm, currg->rg_start + offset, value, caller);
+
+  pthread_mutex_unlock (caller->mlock);
 
   return 0;
 }
@@ -453,7 +465,15 @@ inc_vma_limit (struct pcb_t *caller, int vmaid, int inc_sz,
   /* The obtained vm area (only)
    * now will be alloc real ram region */
   cur_vma->vm_end += inc_amt;
-  if (vm_map_ram (caller, old_end, incnumpage, newrg) < 0)
+
+  pthread_mutex_lock (
+      caller->mlock); /* Locking physical memory access function */
+
+  int map_ram_stat = vm_map_ram (caller, old_end, incnumpage, newrg);
+
+  pthread_mutex_unlock (caller->mlock);
+
+  if (map_ram_stat < 0)
     return -1;             /* Map the memory to MEMRAM */
 
   cur_vma->sbrk += inc_sz; /* Increase the breaking point */
@@ -501,9 +521,6 @@ int
 get_free_vmrg_area (struct pcb_t *caller, int vmaid, int size,
                     struct vm_rg_struct *newrg)
 {
-#ifdef MMDBG
-  printf ("\tget_free_vmrg_area\n");
-#endif
   struct vm_area_struct *cur_vma = get_vma_by_num (caller->mm, vmaid);
 
   struct vm_rg_struct *rgit = cur_vma->vm_freerg_list;

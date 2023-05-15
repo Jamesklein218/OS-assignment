@@ -3,6 +3,9 @@
   "files.associations": {
     "cpu.h": "c",
     "queue.h": "c",
-    "sched.h": "c"
+    "sched.h": "c",
+    "__threading_support": "c",
+    "mutex": "c",
+    "pthread.h": "c"
   }
 }

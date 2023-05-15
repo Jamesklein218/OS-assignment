@@ -6,10 +6,8 @@
 
 #include "mm.h"
 #include <stdlib.h>
-#include <pthread.h>
 
 /* Lock for the whole memphy space */
-// static pthread_mutex_t memphy_lock;
 
 /*
  *  MEMPHY_mv_csr - move MEMPHY cursor
