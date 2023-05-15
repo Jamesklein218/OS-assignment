@@ -101,6 +101,9 @@ __alloc (struct pcb_t *caller, int vmaid, int rgid, int size,
       caller->mm->symrgtbl[rgid].rg_start = rgnode.rg_start;
       caller->mm->symrgtbl[rgid].rg_end = rgnode.rg_end;
 
+      printf ("\t[ALLOC] get free region %d %d\n", rgnode.rg_start,
+              rgnode.rg_end);
+
       *alloc_addr = rgnode.rg_start;
 
       return 0;

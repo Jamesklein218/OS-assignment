@@ -122,6 +122,8 @@ vmap_page_range (
       init_pte (pte, /* present: */ 1, /* fpn: */ fpit->fpn, /* drt: */ 0,
                 /* swp: */ 0, /* swptyp */ 0, /*  swpoff */ 0);
 
+      printf ("\t[ALLOC] %08x\n", *pte);
+
       fpit = fpit->fp_next;            /* proceed to the next physical frame */
       ret_rg->rg_end += PAGING_PAGESZ; /* Add page end to one page size */
     }
@@ -188,6 +190,7 @@ alloc_pages_range (struct pcb_t *caller, int req_pgnum,
 
           /* We don't need to seap the fpn to vicfpn because we
            * are allocating, not reading from the frame */
+          fpn = vicfpn;
         }
 
       /* Add new frame to the new frame list */

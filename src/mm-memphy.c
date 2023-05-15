@@ -129,7 +129,7 @@ MEMPHY_format (struct memphy_struct *mp, int pagesz)
   /* This setting come with fixed constant PAGESZ */
   int numfp = mp->maxsz / pagesz;
   struct framephy_struct *newfst, *fst;
-  int iter = 0;
+  int iter = 1;
 
   if (numfp <= 0)
     return -1;
@@ -140,7 +140,7 @@ MEMPHY_format (struct memphy_struct *mp, int pagesz)
   mp->free_fp_list = fst;
 
   /* We have list with first element, fill in the rest num-1 element member*/
-  for (iter = 1; iter < numfp; iter++)
+  for (iter = 2; iter < numfp; iter++)
     {
       newfst = malloc (sizeof (struct framephy_struct));
       newfst->fpn = iter;
