@@ -1,0 +1,12 @@
+1 11
+alloc 150 2
+alloc 300 1
+write 124 1 19
+write 123 1 19
+read 1 20 20
+read 1 19 19
+write 124 1 20
+read 1 20 20
+read 1 19 19
+free 1
+free 2

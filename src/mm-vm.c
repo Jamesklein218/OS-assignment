@@ -192,7 +192,6 @@ pg_getpage (struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
 
   if (!PAGING_PAGE_PRESENT (pte))
     { /* Page is not online, make it actively living */
-      printf ("\tPage not presented!!\n");
       struct memphy_struct *swpsrc = NULL;
       int vicpgn, swpfpn;
       int vicfpn;
