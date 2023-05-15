@@ -3,6 +3,8 @@
 #include "mem.h"
 #include "mm.h"
 
+#include <stdio.h>
+
 int
 calc (struct pcb_t *proc)
 {
@@ -78,6 +80,7 @@ run (struct pcb_t *proc)
       break;
     case ALLOC:
 #ifdef MM_PAGING
+      printf("\tALLOC %d %d\n", ins.arg_0, ins.arg_1);
       stat = pgalloc (proc, ins.arg_0, ins.arg_1);
 #else
       stat = alloc (proc, ins.arg_0, ins.arg_1);
@@ -85,6 +88,7 @@ run (struct pcb_t *proc)
       break;
     case FREE:
 #ifdef MM_PAGING
+      printf("\tFREE %d\n", ins.arg_1);
       stat = pgfree_data (proc, ins.arg_0);
 #else
       stat = free_data (proc, ins.arg_0);

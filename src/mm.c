@@ -147,32 +147,66 @@ alloc_pages_range (struct pcb_t *caller, int req_pgnum,
   struct framephy_struct *newfp_head = NULL, *tmp = NULL;
   struct mm_struct *owner_mm = caller->mm;
 
+  /* Perform allocating procedure for each page iterable
+   * If we cannot find the free frame,
+   * find it in swap and swap it with
+   * an victim page found on the global
+   * FIFO
+   * */
   for (pgit = 0; pgit < req_pgnum; pgit++)
     {
-      if (MEMPHY_get_freefp (caller->mram, &fpn) == 0)
-        {     /* Add new frame to the new frame list */
-          if (newfp_head != NULL)
-            { /* New frame list is not empty */
-              tmp = malloc (sizeof (struct framephy_struct));
-              tmp->fp_next = newfp_head;
-              tmp->fpn = fpn;
-              tmp->owner = owner_mm;
+      if (MEMPHY_get_freefp (caller->mram, &fpn) != 0)
+        { /* Cannot find any frame from RAM, swap one from RAM to SWAP */
+          struct memphy_struct *swpsrc = NULL;
+          int vicpgn, swpfpn;
+          int vicfpn;
+          uint32_t vicpte;
+          int swptype
+              = 0; /* We only have one swap devices which is the first one */
 
-              newfp_head = tmp;
-              tmp = NULL;
-            }
+          /* Find and pop victim page out */
+          if (find_victim_page (caller->mm, &vicpgn) != 0)
+            return -1;                      /* Invalid page access */
+
+          vicpte = caller->mm->pgd[vicpgn]; /* Get victim's page entry */
+
+          vicfpn
+              = GETVAL (vicpte, PAGING_PTE_FPN_MASK,
+                        PAGING_PTE_FPN_LOBIT); /* Get victim's frame number */
+
+          /* Get free frame in MEMSWP */
+          if (MEMPHY_get_freefp (caller->active_mswp, &swpfpn) != 0)
+            return -1;
           else
-            { /* New frame list is empty, initialize it */
-              newfp_head = malloc (sizeof (struct framephy_struct));
-              newfp_head->fpn = fpn;
-              newfp_head->owner = owner_mm; /* Adding for precaution */
-              newfp_head->fp_next = NULL;
-            }
+            swpsrc = caller->active_mswp;
+
+          /* Copy victim frame to swap */
+          __swap_cp_page (caller->mram, vicfpn, swpsrc, swpfpn);
+
+          /* Update pte of victim to swap */
+          pte_set_swap (&caller->mm->pgd[vicpgn], swptype, vicfpn);
+
+          /* We don't need to seap the fpn to vicfpn because we
+           * are allocating, not reading from the frame */
+        }
+
+      /* Add new frame to the new frame list */
+      if (newfp_head != NULL)
+        { /* New frame list is not empty */
+          tmp = malloc (sizeof (struct framephy_struct));
+          tmp->fp_next = newfp_head;
+          tmp->fpn = fpn;
+          tmp->owner = owner_mm;
+
+          newfp_head = tmp;
+          tmp = NULL;
         }
       else
-        {
-          // TODO
-          return -1;
+        { /* New frame list is empty, initialize it */
+          newfp_head = malloc (sizeof (struct framephy_struct));
+          newfp_head->fpn = fpn;
+          newfp_head->owner = owner_mm; /* Adding for precaution */
+          newfp_head->fp_next = NULL;
         }
     }
 

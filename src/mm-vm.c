@@ -501,6 +501,9 @@ int
 get_free_vmrg_area (struct pcb_t *caller, int vmaid, int size,
                     struct vm_rg_struct *newrg)
 {
+#ifdef MMDBG
+  printf ("\tget_free_vmrg_area\n");
+#endif
   struct vm_area_struct *cur_vma = get_vma_by_num (caller->mm, vmaid);
 
   struct vm_rg_struct *rgit = cur_vma->vm_freerg_list;

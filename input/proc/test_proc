@@ -1,7 +1,7 @@
 1 8
-alloc 255 0
-alloc 256 1
-write 69 0 0
-read 0 0 1
+alloc 300 0
+alloc 100 1
 free 0
+alloc 100 2
+free 2
 free 1
