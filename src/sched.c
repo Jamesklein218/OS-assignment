@@ -74,7 +74,7 @@ get_mlq_proc (void)
   pthread_mutex_lock (&queue_lock);
   struct pcb_t *proc = NULL;
   /* Get a process from PRIORITY [mlq_ready_queue].
-   * Remember to use lock to protect the queue.
+   * Use lock to protect the queue.
    * */
 
   /* Check if the ENTIRE MULTI-QUEUE is empty */

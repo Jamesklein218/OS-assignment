@@ -1,4 +1,4 @@
-1 13
+1 14
 calc
 alloc 300 0
 alloc 300 4
@@ -12,4 +12,5 @@ write 103 3 20
 read 3 20 20
 calc
 free 4
+calc
 calc
