@@ -121,8 +121,9 @@ vmap_page_range (
        * initially every frame is presented */
       init_pte (pte, /* present: */ 1, /* fpn: */ fpit->fpn, /* drt: */ 0,
                 /* swp: */ 0, /* swptyp */ 0, /*  swpoff */ 0);
-
+#ifdef MMDBG
       printf ("\t[ALLOC] %08x\n", *pte);
+#endif
 
       fpit = fpit->fp_next;            /* proceed to the next physical frame */
       ret_rg->rg_end += PAGING_PAGESZ; /* Add page end to one page size */

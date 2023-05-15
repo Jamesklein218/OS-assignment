@@ -81,7 +81,7 @@ run (struct pcb_t *proc)
     case ALLOC:
 #ifdef MM_PAGING
 #ifdef MMDBG
-      printf("\tALLOC %d %d\n", ins.arg_0, ins.arg_1);
+      printf("alloc size=%d region=%d\n", ins.arg_0, ins.arg_1);
 #endif
       stat = pgalloc (proc, ins.arg_0, ins.arg_1);
 #else
@@ -91,7 +91,7 @@ run (struct pcb_t *proc)
     case FREE:
 #ifdef MM_PAGING
 #ifdef MMDBG
-      printf("\tFREE %d\n", ins.arg_1);
+      printf("free region=%d\n", ins.arg_1);
 #endif
       stat = pgfree_data (proc, ins.arg_0);
 #else
