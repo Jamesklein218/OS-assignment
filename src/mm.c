@@ -170,8 +170,9 @@ alloc_pages_range (struct pcb_t *caller, int req_pgnum,
             }
         }
       else
-        { /* ERROR CODE */
-          return -3000;
+        {
+          // TODO
+          return -1;
         }
     }
 

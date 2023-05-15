@@ -103,15 +103,14 @@ __alloc (struct pcb_t *caller, int vmaid, int rgid, int size,
     }
 
   /*Attempt to increate limit to get space */
-  int inc_sz = PAGING_PAGE_ALIGNSZ (size);
+  // int inc_sz = PAGING_PAGE_ALIGNSZ (size);
   // int inc_limit_ret
 
   /* INCREASE THE LIMIT
    * Ascender the sbrk cursor
    * inc_vma_limit(caller, vmaid, inc_sz)
    */
-  int stat
-      = inc_vma_limit (caller, vmaid, inc_sz, &caller->mm->symrgtbl[rgid]);
+  int stat = inc_vma_limit (caller, vmaid, size, &caller->mm->symrgtbl[rgid]);
 
   if (stat == -1)
     return -1;
@@ -185,6 +184,7 @@ pg_getpage (struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
 
   if (!PAGING_PAGE_PRESENT (pte))
     { /* Page is not online, make it actively living */
+      printf ("\tPage not presented!!\n");
       struct memphy_struct *swpsrc = NULL;
       int vicpgn, swpfpn;
       int vicfpn;
@@ -452,7 +452,7 @@ inc_vma_limit (struct pcb_t *caller, int vmaid, int inc_sz,
 
   /* The obtained vm area (only)
    * now will be alloc real ram region */
-  cur_vma->vm_end += inc_sz;
+  cur_vma->vm_end += inc_amt;
   if (vm_map_ram (caller, old_end, incnumpage, newrg) < 0)
     return -1;             /* Map the memory to MEMRAM */
 
@@ -545,6 +545,7 @@ get_free_vmrg_area (struct pcb_t *caller, int vmaid, int size,
                   rgit->rg_next = NULL;
                 }
             }
+          break;
         }
       else
         {
