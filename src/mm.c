@@ -172,7 +172,7 @@ alloc_pages_range (struct pcb_t *caller, int req_pgnum,
           if (find_victim_page (caller->mm, &vicpgn) != 0)
             {
 #ifdef MMDBG
-              printf ("\t Cannot find victim page\n");
+              printf ("\tCannot find victim page\n");
 #endif
               return -1; /* Invalid page access */
             }
