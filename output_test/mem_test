@@ -3,165 +3,165 @@ ld_routine
 Time slot   1
 	Loaded a process at input/proc/s5, PID: 1 PRIO: 130
 Time slot   2
-	CPU 1: Dispatched process  1
+	CPU 0: Dispatched process  1
 	alloc PID=1 size=150 region=1
 	[ALLOC] 80000001 1
 	Loaded a process at input/proc/s5, PID: 2 PRIO: 39
 Time slot   3
+	CPU 1: Dispatched process  2
+	alloc PID=2 size=150 region=1
 	alloc PID=1 size=150 region=2
 	[ALLOC] 80000002 2
-	CPU 0: Dispatched process  2
-	alloc PID=2 size=150 region=1
 	[ALLOC] 80000003 3
 Time slot   4
-	CPU 1: Put process  1 to run queue
-	Loaded a process at input/proc/s5, PID: 3 PRIO: 15
 	alloc PID=2 size=150 region=2
+	Loaded a process at input/proc/s5, PID: 3 PRIO: 15
+	CPU 0: Put process  1 to run queue
 	[ALLOC] 80000004 4
-	CPU 1: Dispatched process  1
+	CPU 0: Dispatched process  1
 free PID=1 region=2
 Time slot   5
+	CPU 1: Put process  2 to run queue
+	CPU 1: Dispatched process  3
+	alloc PID=3 size=150 region=1
+	 Cannot find victim page
 	write PID=1 region=1 offset=19 value=124
 print_pgtbl: 0 - 512
 00000000: 80000001
-00000004: 80000002
-	CPU 0: Put process  2 to run queue
-	CPU 0: Dispatched process  3
-	alloc PID=3 size=150 region=1
-	 Cannot find victim page
+00000004: 80000003
 Time slot   6
 	alloc PID=3 size=150 region=2
 	 Cannot find victim page
-	CPU 1: Put process  1 to run queue
-	CPU 1: Dispatched process  2
+	CPU 0: Put process  1 to run queue
+	CPU 0: Dispatched process  2
 free PID=2 region=2
 Time slot   7
 	write PID=2 region=1 offset=19 value=124
-print_pgtbl: 0 - 512
-00000000: 80000003
-00000004: 80000004
-	CPU 0: Put process  3 to run queue
-	CPU 0: Dispatched process  3
+	CPU 1: Put process  3 to run queue
+	CPU 1: Dispatched process  3
 free PID=3 region=2
-Time slot   8
-	CPU 1: Put process  2 to run queue
-	CPU 1: Dispatched process  2
-	write PID=2 region=1 offset=19 value=123
 print_pgtbl: 0 - 512
-00000000: 80000003
+00000000: 80000002
 00000004: 80000004
+Time slot   8
+	CPU 0: Put process  2 to run queue
 	write PID=3 region=1 offset=19 value=124
 print_pgtbl: 0 - 512
+	CPU 0: Dispatched process  2
+	write PID=2 region=1 offset=19 value=123
+print_pgtbl: 0 - 512
+00000000: 80000002
+00000004: 80000004
 00000000: 00000000
 00000004: 00000000
 Time slot   9
-	read PID=2 region=1 offset=20 value=0
-print_pgtbl: 0 - 512
-00000000: 80000003
-00000004: 80000004
-	CPU 0: Put process  3 to run queue
-	CPU 0: Dispatched process  3
+	CPU 1: Put process  3 to run queue
+	CPU 1: Dispatched process  3
 	write PID=3 region=1 offset=19 value=123
 print_pgtbl: 0 - 512
 00000000: 00000000
 00000004: 00000000
-Time slot  10
-	CPU 1: Put process  2 to run queue
-	CPU 1: Dispatched process  2
-	read PID=2 region=1 offset=19 value=123
+	read PID=2 region=1 offset=20 value=0
 print_pgtbl: 0 - 512
-00000000: 80000003
+00000000: 80000002
 00000004: 80000004
+Time slot  10
 	read PID=3 region=1 offset=20 value=0
 print_pgtbl: 0 - 512
 00000000: 00000000
 00000004: 00000000
-Time slot  11
-	write PID=2 region=1 offset=20 value=124
+	CPU 0: Put process  2 to run queue
+	CPU 0: Dispatched process  2
+	read PID=2 region=1 offset=19 value=123
 print_pgtbl: 0 - 512
-00000000: 80000003
+00000000: 80000002
 00000004: 80000004
-	CPU 0: Put process  3 to run queue
-	CPU 0: Dispatched process  3
+Time slot  11
+	CPU 1: Put process  3 to run queue
+	CPU 1: Dispatched process  3
 	read PID=3 region=1 offset=19 value=0
 print_pgtbl: 0 - 512
 00000000: 00000000
 00000004: 00000000
-Time slot  12
-	CPU 1: Put process  2 to run queue
-	CPU 1: Dispatched process  2
-	read PID=2 region=1 offset=20 value=124
+	write PID=2 region=1 offset=20 value=124
 print_pgtbl: 0 - 512
-00000000: 80000003
+00000000: 80000002
 00000004: 80000004
+Time slot  12
 	write PID=3 region=1 offset=20 value=124
 print_pgtbl: 0 - 512
 00000000: 00000000
 00000004: 00000000
-Time slot  13
-	read PID=2 region=1 offset=19 value=123
+	CPU 0: Put process  2 to run queue
+	CPU 0: Dispatched process  2
+	read PID=2 region=1 offset=20 value=124
 print_pgtbl: 0 - 512
-00000000: 80000003
+00000000: 80000002
 00000004: 80000004
-	CPU 0: Put process  3 to run queue
-	CPU 0: Dispatched process  3
+Time slot  13
+	CPU 1: Put process  3 to run queue
+	CPU 1: Dispatched process  3
 	read PID=3 region=1 offset=20 value=0
 print_pgtbl: 0 - 512
 00000000: 00000000
 00000004: 00000000
+	read PID=2 region=1 offset=19 value=123
+print_pgtbl: 0 - 512
+00000000: 80000002
+00000004: 80000004
 Time slot  14
-	CPU 1: Put process  2 to run queue
-	CPU 1: Dispatched process  2
-free PID=2 region=1
 	read PID=3 region=1 offset=19 value=0
 print_pgtbl: 0 - 512
 00000000: 00000000
 00000004: 00000000
+	CPU 0: Put process  2 to run queue
+	CPU 0: Dispatched process  2
+free PID=2 region=1
 Time slot  15
-	CPU 1: Processed  2 has finished
-	CPU 0: Put process  3 to run queue
-	CPU 1: Dispatched process  1
+	CPU 0: Processed  2 has finished
+	CPU 0: Dispatched process  1
 	write PID=1 region=1 offset=19 value=123
 print_pgtbl: 0 - 512
 00000000: 80000001
-00000004: 80000002
-	CPU 0: Dispatched process  3
+00000004: 80000003
+	CPU 1: Put process  3 to run queue
+	CPU 1: Dispatched process  3
 free PID=3 region=1
 Time slot  16
+	CPU 1: Processed  3 has finished
+	CPU 1 stopped
 	read PID=1 region=1 offset=20 value=0
 print_pgtbl: 0 - 512
 00000000: 80000001
-00000004: 80000002
-	CPU 0: Processed  3 has finished
-	CPU 0 stopped
+00000004: 80000003
 Time slot  17
-	CPU 1: Put process  1 to run queue
-	CPU 1: Dispatched process  1
+	CPU 0: Put process  1 to run queue
+	CPU 0: Dispatched process  1
 	read PID=1 region=1 offset=19 value=123
 print_pgtbl: 0 - 512
 00000000: 80000001
-00000004: 80000002
+00000004: 80000003
 Time slot  18
 	write PID=1 region=1 offset=20 value=124
 print_pgtbl: 0 - 512
 00000000: 80000001
-00000004: 80000002
+00000004: 80000003
 Time slot  19
-	CPU 1: Put process  1 to run queue
-	CPU 1: Dispatched process  1
+	CPU 0: Put process  1 to run queue
+	CPU 0: Dispatched process  1
 	read PID=1 region=1 offset=20 value=124
 print_pgtbl: 0 - 512
 00000000: 80000001
-00000004: 80000002
+00000004: 80000003
 Time slot  20
 	read PID=1 region=1 offset=19 value=123
 print_pgtbl: 0 - 512
 00000000: 80000001
-00000004: 80000002
+00000004: 80000003
 Time slot  21
-	CPU 1: Put process  1 to run queue
-	CPU 1: Dispatched process  1
+	CPU 0: Put process  1 to run queue
+	CPU 0: Dispatched process  1
 free PID=1 region=1
 Time slot  22
-	CPU 1: Processed  1 has finished
-	CPU 1 stopped
+	CPU 0: Processed  1 has finished
+	CPU 0 stopped
