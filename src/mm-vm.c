@@ -100,7 +100,6 @@ __alloc (struct pcb_t *caller, int vmaid, int rgid, int size,
 #ifdef MMDBG
       printf ("\t[ALLOC] PID=%d get free region %lu %lu\n", caller->pid,
               rgnode.rg_start, rgnode.rg_end);
-      print_list_rg (caller->mm->mmap->vm_freerg_list);
 #endif
 
       *alloc_addr = rgnode.rg_start;
@@ -123,9 +122,6 @@ __alloc (struct pcb_t *caller, int vmaid, int rgid, int size,
 
   *alloc_addr = caller->mm->symrgtbl[rgid].rg_start;
 
-#ifdef MMDBG
-  print_list_rg (caller->mm->mmap->vm_freerg_list);
-#endif
   return 0;
 }
 
@@ -233,14 +229,13 @@ __free (struct pcb_t *caller, int vmaid, int rgid)
     {
       pg_putfree (caller->mm, rgnode.rg_start + it, caller);
     }
+#ifdef MMDBG
+  print_list_rg (caller->mm->mmap->vm_freerg_list);
+#endif
 
   pthread_mutex_unlock (caller->mlock);
 
   enlist_vm_freerg_list (caller->mm, rgnode);
-
-#ifdef MMDBG
-  print_list_rg (caller->mm->mmap->vm_freerg_list);
-#endif
 
   return 0;
 }
@@ -517,6 +512,10 @@ inc_vma_limit (struct pcb_t *caller, int vmaid, int inc_sz,
       caller->mlock); /* Locking physical memory access function */
 
   int map_ram_stat = vm_map_ram (caller, old_end, incnumpage, newrg);
+
+#ifdef MMDBG
+  print_list_rg (caller->mm->mmap->vm_freerg_list);
+#endif
 
   pthread_mutex_unlock (caller->mlock);
 
