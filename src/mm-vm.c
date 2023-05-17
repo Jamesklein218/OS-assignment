@@ -98,11 +98,15 @@ __alloc (struct pcb_t *caller, int vmaid, int rgid, int size,
       caller->mm->symrgtbl[rgid].rg_start = rgnode.rg_start;
       caller->mm->symrgtbl[rgid].rg_end = rgnode.rg_end;
 #ifdef MMDBG
-      printf ("\t[ALLOC] get free region %lu %lu\n", rgnode.rg_start,
-              rgnode.rg_end);
+      printf ("\t[ALLOC] PID=%d get free region %lu %lu\n", caller->pid,
+              rgnode.rg_start, rgnode.rg_end);
 #endif
 
       *alloc_addr = rgnode.rg_start;
+
+#ifdef MMDBG
+      print_list_rg (caller->mm->mmap->vm_freerg_list);
+#endif
 
       return 0;
     }
@@ -123,63 +127,6 @@ __alloc (struct pcb_t *caller, int vmaid, int rgid, int size,
   *alloc_addr = caller->mm->symrgtbl[rgid].rg_start;
 
   return 0;
-}
-
-/*__free - remove a region memory
- *@caller: caller
- *@vmaid: ID vm area to alloc memory region
- *@rgid: memory region ID (used to identify variable in symbole table)
- *@size: allocated size
- *
- */
-int
-__free (struct pcb_t *caller, int vmaid, int rgid)
-{
-  struct vm_rg_struct rgnode;
-
-  if (rgid < 0 || rgid > PAGING_MAX_SYMTBL_SZ)
-    return -1;
-
-  /* Manage the collect freed region to freerg_list */
-  rgnode = caller->mm->symrgtbl[rgid];
-
-  /*enlist the obsoleted memory region */
-  enlist_vm_freerg_list (caller->mm, rgnode);
-
-  return 0;
-}
-
-/*pgalloc - PAGING-based allocate a region memory
- *@proc:  Process executing the instruction
- *@size: allocated size
- *@reg_index: memory region ID (used to identify variable in symbole table)
- */
-int
-pgalloc (struct pcb_t *proc, uint32_t size, uint32_t reg_index)
-{
-
-#ifdef MMDBG
-  printf ("\talloc PID=%d size=%d region=%d\n", proc->pid, size, reg_index);
-#endif
-  uint32_t addr;
-
-  /* By default using vmaid = 0 */
-  return __alloc (proc, 0, reg_index, size, &addr);
-}
-
-/*pgfree - PAGING-based free a region memory
- *@proc: Process executing the instruction
- *@size: allocated size
- *@reg_index: memory region ID (used to identify variable in symbole table)
- */
-
-int
-pgfree_data (struct pcb_t *proc, uint32_t reg_index)
-{
-#ifdef MMDBG
-  printf ("free PID=%d region=%d\n", proc->pid, reg_index);
-#endif
-  return __free (proc, 0, reg_index);
 }
 
 /*pg_getpage - get the page in ram
@@ -239,12 +186,102 @@ pg_getpage (struct mm_struct *mm, int pgn, int *fpn, struct pcb_t *caller)
 
   return 0;
 }
-
-/*pg_getval - read value at given offset
+/*pg_putfree - free value inside the MRAM free list
  *@mm: memory region
  *@addr: virtual address to acess
  *@value: value
  *
+ */
+void
+pg_putfree (struct mm_struct *mm, int addr, struct pcb_t *caller)
+{
+  int pgn = PAGING_PGN (addr);
+  int fpn;
+
+  /* Get the page to MEMRAM, swap from MEMSWAP if needed */
+  if (pg_getpage (mm, pgn, &fpn, caller) != 0)
+    return; /* invalid page access */
+
+  MEMPHY_put_freefp (caller->mram, fpn);
+}
+/*__free - remove a region memory
+ *@caller: caller
+ *@vmaid: ID vm area to alloc memory region
+ *@rgid: memory region ID (used to identify variable in symbole table)
+ *@size: allocated size
+ *
+ */
+int
+__free (struct pcb_t *caller, int vmaid, int rgid)
+{
+  struct vm_rg_struct rgnode;
+  int size;
+
+  if (rgid < 0 || rgid > PAGING_MAX_SYMTBL_SZ)
+    return -1;
+
+  /* Manage the collect freed region to freerg_list */
+  rgnode = caller->mm->symrgtbl[rgid];
+  size = rgnode.rg_end - rgnode.rg_start;
+
+  /*enlist the obsoleted memory region */
+  enlist_vm_freerg_list (caller->mm, rgnode);
+
+  pthread_mutex_lock (caller->mlock);
+  /* enlist the obsolete memory frames*/
+  for (int it = 0; it < size; it++)
+    {
+      pg_putfree (caller->mm, rgnode.rg_start + it, caller);
+    }
+
+  pthread_mutex_unlock (caller->mlock);
+  enlist_vm_freerg_list (caller->mm, rgnode);
+
+#ifdef MMDBG
+  print_list_rg (caller->mm->mmap->vm_freerg_list);
+#endif
+
+  return 0;
+}
+
+/*pgalloc - PAGING-based allocate a region memory
+ *@proc:  Process executing the instruction
+ *@size: allocated size
+ *@reg_index: memory region ID (used to identify variable in symbole table)
+ */
+int
+pgalloc (struct pcb_t *proc, uint32_t size, uint32_t reg_index)
+{
+
+#ifdef MMDBG
+  printf ("\talloc PID=%d size=%d region=%d\n", proc->pid, size, reg_index);
+#endif
+  uint32_t addr;
+
+  /* By default using vmaid = 0 */
+  return __alloc (proc, 0, reg_index, size, &addr);
+}
+
+/*pgfree - PAGING-based free a region memory
+ *@proc: Process executing the instruction
+ *@size: allocated size
+ *@reg_index: memory region ID (used to identify variable in symbole table)
+ */
+
+int
+pgfree_data (struct pcb_t *proc, uint32_t reg_index)
+{
+#ifdef MMDBG
+  printf ("\tfree PID=%d region=%d\n", proc->pid, reg_index);
+#endif
+  return __free (proc, 0, reg_index);
+}
+
+/*pg_getval - read value at given offset
+ *@mm: memory region
+ *@addr: virtual address to acess
+ *@data: data
+ *@caller: pcb
  */
 int
 pg_getval (struct mm_struct *mm, int addr, BYTE *data, struct pcb_t *caller)
@@ -323,7 +360,8 @@ pgread (struct pcb_t *proc, // Process executing the instruction
 
   destination = (uint32_t)data;
 #ifdef IODUMP
-  printf ("\tread PID=%d region=%d offset=%d value=%d\n", proc->pid, source, offset, data);
+  printf ("\tread PID=%d region=%d offset=%d value=%d\n", proc->pid, source,
+          offset, data);
 #ifdef PAGETBL_DUMP
   print_pgtbl (proc, 0, -1); // print max TBL
 #endif
@@ -368,7 +406,8 @@ pgwrite (struct pcb_t *proc,   // Process executing the instruction
          uint32_t offset)
 {
 #ifdef IODUMP
-  printf ("\twrite PID=%d region=%d offset=%d value=%d\n", proc->pid, destination, offset, data);
+  printf ("\twrite PID=%d region=%d offset=%d value=%d\n", proc->pid,
+          destination, offset, data);
 #ifdef PAGETBL_DUMP
   print_pgtbl (proc, 0, -1); // print max TBL
 #endif

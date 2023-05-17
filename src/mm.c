@@ -122,7 +122,9 @@ vmap_page_range (
       init_pte (pte, /* present: */ 1, /* fpn: */ fpit->fpn, /* drt: */ 0,
                 /* swp: */ 0, /* swptyp */ 0, /*  swpoff */ 0);
 #ifdef MMDBG
-      printf ("\t[ALLOC] %08x %d\n", *pte, fpit->fpn);
+
+      printf ("\t[ALLOC] PID=%d page_entry=%08x frame_number%d\n", caller->pid,
+              *pte, fpit->fpn);
 #endif
 
       fpit = fpit->fp_next;            /* proceed to the next physical frame */
@@ -377,7 +379,7 @@ print_list_fp (struct framephy_struct *ifp)
 {
   struct framephy_struct *fp = ifp;
 
-  printf ("print_list_fp: ");
+  printf ("\tprint_list_fp: ");
   if (fp == NULL)
     {
       printf ("NULL list\n");
@@ -386,7 +388,7 @@ print_list_fp (struct framephy_struct *ifp)
   printf ("\n");
   while (fp != NULL)
     {
-      printf ("fp[%d]\n", fp->fpn);
+      printf ("\tfp[%d]\n", fp->fpn);
       fp = fp->fp_next;
     }
   printf ("\n");
@@ -398,7 +400,7 @@ print_list_rg (struct vm_rg_struct *irg)
 {
   struct vm_rg_struct *rg = irg;
 
-  printf ("print_list_rg: ");
+  printf ("\tprint_list_rg: ");
   if (rg == NULL)
     {
       printf ("NULL list\n");
@@ -407,7 +409,7 @@ print_list_rg (struct vm_rg_struct *irg)
   printf ("\n");
   while (rg != NULL)
     {
-      printf ("rg[%ld->%ld]\n", rg->rg_start, rg->rg_end);
+      printf ("\trg[%ld->%ld]\n", rg->rg_start, rg->rg_end);
       rg = rg->rg_next;
     }
   printf ("\n");
