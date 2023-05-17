@@ -197,6 +197,9 @@ pg_putfree (struct mm_struct *mm, int addr, struct pcb_t *caller)
   /* Get the page to MEMRAM, swap from MEMSWAP if needed */
   if (pg_getpage (mm, pgn, &fpn, caller) != 0)
     return; /* invalid page access */
+#ifdef MMDBG
+  printf("\tFree fpn: %d\n", fpn);
+#endif
 
   MEMPHY_put_freefp (caller->mram, fpn);
 }
@@ -223,19 +226,18 @@ __free (struct pcb_t *caller, int vmaid, int rgid)
   /*enlist the obsoleted memory region */
   enlist_vm_freerg_list (caller->mm, rgnode);
 
-  pthread_mutex_lock (caller->mlock);
-  /* enlist the obsolete memory frames*/
-  for (int it = 0; it < size; it++)
-    {
-      pg_putfree (caller->mm, rgnode.rg_start + it, caller);
-    }
 #ifdef MMDBG
   print_list_rg (caller->mm->mmap->vm_freerg_list);
 #endif
 
-  pthread_mutex_unlock (caller->mlock);
+  pthread_mutex_lock (caller->mlock);
+  /* enlist the obsolete memory frames*/
+  for (int it = 0; it < size; it+=PAGING_PAGESZ)
+    {
+      pg_putfree (caller->mm, rgnode.rg_start + it, caller);
+    }
 
-  enlist_vm_freerg_list (caller->mm, rgnode);
+  pthread_mutex_unlock (caller->mlock);
 
   return 0;
 }
